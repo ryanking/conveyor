@@ -1,32 +1,32 @@
 feeder-ng
-    by FIX (your name)
-    FIX (url)
+    by Ryan King
+    http://theryanking.com/
 
 == DESCRIPTION:
   
-FIX (describe your package)
+A feeder.
 
 == FEATURES/PROBLEMS:
   
-* FIX (list of features or problems)
+* Rewindable broadcast of data.
 
 == SYNOPSIS:
 
-  FIX (code sample of usage)
+  You put stuff in and in it comes back out!
 
 == REQUIREMENTS:
 
-* FIX (list of requirements)
+* Ruby
 
 == INSTALL:
 
-* FIX (sudo gem install, anything else)
+* gem install feeder-ng
 
 == LICENSE:
 
 (The MIT License)
 
-Copyright (c) 2008 FIX
+Copyright (c) 2008 Ryan King
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the

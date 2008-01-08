@@ -1,0 +1,7 @@
+History.txt
+Manifest.txt
+README.txt
+Rakefile
+bin/feeder-ng
+lib/feeder-ng.rb
+test/test_feeder-ng.rb

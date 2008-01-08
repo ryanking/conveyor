@@ -35,6 +35,7 @@ module FeederNG
     end
     
     def get id
+      return nil unless id <= @last_id
       i = @index.find{|e| e[:id] == id}
       @data_file.seek i[:offset]
       header  = @data_file.readline

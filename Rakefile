@@ -4,7 +4,7 @@ require 'rubygems'
 require 'hoe'
 require './lib/feeder-ng.rb'
 
-Hoe.new('feeder-ng', Feeder-ng::VERSION) do |p|
+Hoe.new('feeder-ng', FeederNG::VERSION) do |p|
   p.rubyforge_name = 'feeder-ng'
   p.author = 'Ryan King'
   p.email = 'ryan@theryanking.com'

@@ -5,8 +5,13 @@ require 'active_support/core_ext/date/conversions'
 module FeederNG
   class Index
     def initialize directory
-      # TODO check to be sure directory exists
-
+      if File.exists?(directory)
+        if !File.directory?(directory)
+          raise "#{directory} is not a directory"
+        end
+      else
+        Dir.mkdir(directory)
+      end
       @index_file = File.open(File.join(directory, 'index'), 'w+') # TODO change mode to 'a+'
       @index_file.sync = true
       @data_file  = File.open(File.join(directory, '1'), 'w+') # TODO change mode to 'a+'
@@ -25,8 +30,7 @@ module FeederNG
       h = Digest::MD5.hexdigest(data)
       o = @data_file.pos
 
-      @data_file.write("#{i} #{t.xmlschema} #{o} #{l} #{h}\n")
-      @data_file.write(data + "\n")
+      @data_file.write("#{i} #{t.xmlschema} #{o} #{l} #{h}\n" + data + "\n")
       @last_id = @last_id + 1
 
       @index_file.write "#{i} #{t.xmlschema} #{o} #{l} #{h} 1\n"

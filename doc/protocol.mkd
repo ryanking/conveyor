@@ -1,0 +1,14 @@
+= FeederNG protocol
+
+* create channel
+  * PUT to /channels/{channel name}
+  * 
+
+* post to channel
+  * POST to /channels/{channel name}/entries
+* get from channel
+  * by id
+    * GET /channel/{channel name}/entries/{id}
+  * by datetime
+    * GET /channels/{channel name}/entries?at={ISO datetime like 2008-01-11T17:53:59}
+    * will return the first entry *after* that datetime

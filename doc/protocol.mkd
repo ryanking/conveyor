@@ -5,10 +5,10 @@
   * 
 
 * post to channel
-  * POST to /channels/{channel name}/entries
+  * POST to /channels/{channel name}
 * get from channel
   * by id
-    * GET /channel/{channel name}/entries/{id}
+    * GET /channel/{channel name}/{id}
   * by datetime
-    * GET /channels/{channel name}/entries?at={ISO datetime like 2008-01-11T17:53:59}
+    * GET /channels/{channel name}?at={ISO datetime like 2008-01-11T17:53:59}
     * will return the first entry *after* that datetime

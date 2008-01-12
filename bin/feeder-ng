@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby -wKU
+
+$: << 'lib'
+
+require 'feeder-ng/server'
+FeederNG::Server.new('localhost', ARGV[0], ARGV[1]).run.join

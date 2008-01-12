@@ -1,5 +1,5 @@
 $: << 'lib'
-require 'feeder-ng/index'
+require 'feeder-ng/channel'
 
 def rand_str(len, domain)
   (1..len).inject("") { |s, x| s << domain[rand(domain.length)] }
@@ -8,15 +8,15 @@ end
 alphanum = [ ('a'..'z').to_a, ('A'..'Z').to_a, ('0'..'9').to_a ].flatten
 data = []
 
-index = FeederNG::Index.new '/tmp/bar'
+channel = FeederNG::Channel.new '/tmp/bar'
 
 puts "writing random data"
-1000.times{index.post(d=rand_str(rand(10000), alphanum)); data << d}
+1000.times{channel.post(d=rand_str(rand(10000), alphanum)); data << d}
 
 puts "reading data back"
 
 1000.times do |i|
-  headers, content = index.get(i + 1)
+  headers, content = channel.get(i + 1)
   
   unless content == data[i]
     puts "unmatched content"

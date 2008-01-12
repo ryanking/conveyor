@@ -3,7 +3,7 @@ require 'rubygems'
 require 'active_support/core_ext/date/conversions'
 
 module FeederNG
-  class Index
+  class Channel
     def initialize directory
       if File.exists?(directory)
         if !File.directory?(directory)

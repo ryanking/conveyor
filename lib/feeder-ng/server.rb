@@ -3,6 +3,24 @@ require 'mongrel'
 require 'feeder-ng/channel'
 require 'fileutils'
 
+class Mongrel::HttpRequest
+  def put?
+    params["REQUEST_METHOD"] == "PUT"
+  end
+  
+  def post?
+    params["REQUEST_METHOD"] == "POST"
+  end
+  
+  def get?
+    params["REQUEST_METHOD"] == "GET"
+  end
+
+  def path_match pattern
+    params["REQUEST_PATH"].match(pattern)
+  end
+end
+
 module FeederNG
   class Server < Mongrel::HttpServer
 
@@ -21,36 +39,33 @@ module FeederNG
       def create_new_channel channel_name
         @channels[channel_name] = FeederNG::Channel.new(File.join(@data_directory, channel_name))
       end
-      
-      def valid_channel_name? name
-        !!name.match(%r{\A[a-zA-Z\-0-9]+\Z})
-      end
-      
+
       def process request, response
-        if request.params["REQUEST_METHOD"] == "PUT" && request.params["REQUEST_PATH"].match(%r{/channels/(.*)})
-          if Channel.valid_channel_name?($1)
-            create_new_channel $1
+        if request.put? && m = request.path_match(%r{/channels/(.*)})
+          if Channel.valid_channel_name?(m.captures[0])
+            create_new_channel m.captures[0]
             response.start(201) do |head, out|
-              out.write("created channel #{$1}")
+              out.write("created channel #{m.captures[0]}")
             end
           else
             response.start(406) do |head, out|
               out.write("invalid channel name. must match #{Channel::NAME_PATTERN}")
             end
           end
-        elsif request.params["REQUEST_METHOD"] == "POST" && request.params["REQUEST_PATH"].match(%r{/channels/(.*)}) &&
-          @channels.keys.include?($1)
-          id = @channels[$1].post(request.body.read)
-          response.start(202) do |head, out|
-            head["Location"] = "/channels/#{$1}/#{id}"
+        elsif request.post? && m = request.path_match(%r{/channels/(.*)})
+          if @channels.keys.include?(m.captures[0])
+            id = @channels[m.captures[0]].post(request.body.read)
+            response.start(202) do |head, out|
+              head["Location"] = "/channels/#{m.captures[0]}/#{id}"
+            end
           end
-        elsif request.params["REQUEST_METHOD"] == "GET" && request.params["REQUEST_PATH"].match(%r{/channels/(.*)/(\d+)}) &&
-          @channels.keys.include?($1)
-          
-          headers, content = @channels[$1].get($2.to_i)
-          if headers && content
-            response.start(200) do |head, out|
-              out.write content
+        elsif request.get? && m = request.path_match(%r{/channels/(.*)/(\d+)})
+          if @channels.keys.include?(m.captures[0])
+            headers, content = @channels[m.captures[0]].get(m.captures[1].to_i)
+            if headers && content
+              response.start(200) do |head, out|
+                out.write content
+              end
             end
           end
         else

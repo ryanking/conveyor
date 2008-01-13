@@ -60,4 +60,11 @@ class TestFeederNGServer < Test::Unit::TestCase
     end
   end
   
+  def test_invalid_channel
+    Net::HTTP.start('localhost', 8888) do |h|
+      req = h.put('/channels/|', '')
+      assert_equal Net::HTTPNotAcceptable, req.class
+    end
+    
+  end
 end

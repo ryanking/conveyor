@@ -1,6 +1,6 @@
-# FeederNG protocol
+# FeederNG protocol #
 
-## Creating a channel
+## Create a channel ##
 
 Request
 : PUT /channels/{channel name}
@@ -10,7 +10,7 @@ Response
 
 The simple explanation is that to create a channel you do a PUT operation on the url you want for the channel, which must conform to /channels/\A[a-zA-Z0-9\-]+\Z. In other words, the channel name may only have letters numbers and dashes.
 
-## Posting to a channel
+## Post to a channel ##
 Request
 : POST /channels/{channel name}
 : body is the message
@@ -20,9 +20,9 @@ Response
 
 A post to a channel URL with the message in the body.
 
-## Getting from channel
+## Get from channel ##
 
-### Getting by id
+### Get by id ###
 
 Request
 : GET /channel/{channel name}/{id}
@@ -30,7 +30,7 @@ Request
 Response
 : success: 200, failure: 404
 
-### Getting by datetime
+### Get by datetime ###
 
 NOT IMPLEMENTED YET!
 
@@ -41,3 +41,13 @@ Response
 : success: 200
 
 Will return the first entry *after* that datetime.
+
+### Get Next (Queue-like semantics) ###
+
+Request
+: GET /channels/{channel name}?next
+
+Response
+: success: 200
+
+If this is called for the first time, it will return the first item in the channel. Otherwise it will return the next item.

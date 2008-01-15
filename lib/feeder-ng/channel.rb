@@ -35,6 +35,21 @@ module FeederNG
 
       @data_file  = File.open(File.join(directory, '1'), 'a+')
       @data_file.sync = true
+
+      iterator_path = File.join(directory, 'iterator')
+
+      if File.exists?(iterator_path) && File.size(iterator_path) > 0
+        @iterator_file = File.open(iterator_path, 'r+')
+        @iterator = 0
+        @iterator_file.each_line do |line|
+          @iterator = line.to_i
+        end
+        @iterator_file.seek(0, IO::SEEK_END)
+      else
+        @iterator_file = File.open(iterator_path, 'a')
+        @iterator = 0
+      end
+      @iterator_file.sync = true
     end
 
     def post data
@@ -60,6 +75,13 @@ module FeederNG
       header  = @data_file.readline.strip
       content = @data_file.read(i[:length])
       [parse_headers(header), content]
+    end
+    
+    def get_next
+      @iterator += 1
+      r = get(@iterator)
+      @iterator_file.write("#{@iterator}\n")
+      r
     end
     
     def parse_headers str, index_file=false

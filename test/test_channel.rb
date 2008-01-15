@@ -40,7 +40,7 @@ class TestFeederNGChannel < Test::Unit::TestCase
   end
 
   def test_init_existing
-    FileUtils.rm_r('/tmp/bar')
+    FileUtils.rm_r('/tmp/bar') rescue nil
     c = Channel.new('/tmp/bar')
     c.post 'foo'
     c.post 'bar'
@@ -53,6 +53,35 @@ class TestFeederNGChannel < Test::Unit::TestCase
     
     d.post('bam')
     assert_equal 'bam', d.get(3)[1]
+  end
+
+  def test_get_next
+    FileUtils.rm_r('/tmp/bar') rescue nil
+    c = Channel.new('/tmp/bar')
+    c.post 'foo'
+    c.post 'bar'
+    c.post 'bam'
+    
+    assert_equal 'foo', c.get_next[1]
+    assert_equal 'bar', c.get_next[1]
+    assert_equal 'bam', c.get_next[1]
+    assert_equal nil, c.get_next
+  end
+
+  def test_get_next_interupted
+    FileUtils.rm_r('/tmp/bar') rescue nil
+    c = Channel.new('/tmp/bar')
+    c.post 'foo'
+    c.post 'bar'
+    c.post 'bam'
+    
+    assert_equal 'foo', c.get_next[1]
+    assert_equal 'bar', c.get_next[1]
+
+    d = Channel.new('/tmp/bar')
+    assert_not_equal c, d
+    assert_equal 'bam', d.get_next[1]
+    assert_equal nil, d.get_next
   end
 
 end

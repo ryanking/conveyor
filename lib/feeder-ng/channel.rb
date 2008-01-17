@@ -4,9 +4,9 @@ require 'active_support/core_ext/date/conversions'
 
 module FeederNG
   class Channel
-    
+
     NAME_PATTERN = %r{\A[a-zA-Z\-0-9]+\Z}
-    
+
     def initialize directory
       if File.exists?(directory)
         if !File.directory?(directory)
@@ -53,35 +53,43 @@ module FeederNG
     end
 
     def post data
-      i = @last_id + 1
-      t = Time.now
-      l = data.length
-      h = Digest::MD5.hexdigest(data)
-      @data_file.seek(0, IO::SEEK_END)
-      o = @data_file.pos
+      Thread.exclusive do
+        i = @last_id + 1
+        t = Time.now
+        l = data.length
+        h = Digest::MD5.hexdigest(data)
+        @data_file.seek(0, IO::SEEK_END)
+        o = @data_file.pos
 
-      @data_file.write("#{i} #{t.xmlschema} #{o} #{l} #{h}\n" + data + "\n")
-      @last_id = @last_id + 1
+        header = "#{i} #{t.xmlschema} #{o} #{l} #{h}"
+        @data_file.write("#{header}\n" + data + "\n")
+        @last_id = i
 
-      @index_file.write "#{i} #{t.xmlschema} #{o} #{l} #{h} 1\n"
-      @index << {:id => i, :time => t, :offset => o, :length => l, :hash => h, :file => 1}
-      i
+        @index_file.write "#{header} 1\n"
+        @index << {:id => i, :time => t, :offset => o, :length => l, :hash => h, :file => 1}
+        i
+      end
     end
 
     def get id
       return nil unless id <= @last_id
       i = @index.find{|e| e[:id] == id}
-      @data_file.seek i[:offset]
-      header  = @data_file.readline.strip
-      content = @data_file.read(i[:length])
+      header, content = nil
+      Thread.exclusive do
+        @data_file.seek i[:offset]
+        header  = @data_file.readline.strip
+        content = @data_file.read(i[:length])
+      end
       [parse_headers(header), content]
     end
     
     def get_next
-      @iterator += 1
-      r = get(@iterator)
-      @iterator_file.write("#{@iterator}\n")
-      r
+      Thread.exclusive do
+        @iterator += 1 # TODO make sure this is lower than @last_id
+        r = get(@iterator)
+        @iterator_file.write("#{@iterator}\n")
+        r
+      end
     end
     
     def parse_headers str, index_file=false
@@ -102,7 +110,5 @@ module FeederNG
     def self.valid_channel_name? name
       !!name.match(NAME_PATTERN)
     end
-
   end
-  
 end

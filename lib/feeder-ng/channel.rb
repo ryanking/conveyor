@@ -6,17 +6,19 @@ module FeederNG
   class Channel
 
     NAME_PATTERN = %r{\A[a-zA-Z\-0-9]+\Z}
+    BUCKET_SIZE = 100_000
 
     def initialize directory
-      if File.exists?(directory)
-        if !File.directory?(directory)
-          raise "#{directory} is not a directory"
+      @directory = directory
+      if File.exists?(@directory)
+        if !File.directory?(@directory)
+          raise "#{@directory} is not a directory"
         end
       else
-        Dir.mkdir(directory)
+        Dir.mkdir(@directory)
       end
 
-      index_path = File.join(directory, 'index')
+      index_path = File.join(@directory, 'index')
 
       if File.exists?(index_path) && File.size(index_path) > 0
         @index_file = File.open(index_path, 'r+')
@@ -33,10 +35,9 @@ module FeederNG
       end
       @index_file.sync = true
 
-      @data_file  = File.open(File.join(directory, '1'), 'a+')
-      @data_file.sync = true
+      @data_files = []
 
-      iterator_path = File.join(directory, 'iterator')
+      iterator_path = File.join(@directory, 'iterator')
 
       if File.exists?(iterator_path) && File.size(iterator_path) > 0
         @iterator_file = File.open(iterator_path, 'r+')
@@ -52,21 +53,36 @@ module FeederNG
       @iterator_file.sync = true
     end
 
+    def pick_bucket i
+      (i / BUCKET_SIZE).to_i
+    end
+
+    def bucket_file i
+      unless @data_files[i]
+        @data_files[i] = File.open(File.join(@directory, i.to_s), 'a+')
+        @data_files[i].sync = true
+      end
+      yield @data_files[i]
+    end
+
     def post data
       Thread.exclusive do
         i = @last_id + 1
         t = Time.now
         l = data.length
         h = Digest::MD5.hexdigest(data)
-        @data_file.seek(0, IO::SEEK_END)
-        o = @data_file.pos
+        b = pick_bucket(i)
+        header, o = nil
+        bucket_file(b) do |f|
+          f.seek(0, IO::SEEK_END)
+          o = f.pos
+          header = "#{i} #{t.xmlschema} #{o} #{l} #{h}"
+          f.write("#{header}\n" + data + "\n")
+        end
 
-        header = "#{i} #{t.xmlschema} #{o} #{l} #{h}"
-        @data_file.write("#{header}\n" + data + "\n")
         @last_id = i
-
-        @index_file.write "#{header} 1\n"
-        @index << {:id => i, :time => t, :offset => o, :length => l, :hash => h, :file => 1}
+        @index_file.write "#{header} #{b}\n"
+        @index << {:id => i, :time => t, :offset => o, :length => l, :hash => h, :file => b}
         i
       end
     end
@@ -76,9 +92,11 @@ module FeederNG
       i = @index.find{|e| e[:id] == id}
       header, content = nil
       Thread.exclusive do
-        @data_file.seek i[:offset]
-        header  = @data_file.readline.strip
-        content = @data_file.read(i[:length])
+        bucket_file(i[:file]) do |f|
+          f.seek i[:offset]
+          header  = f.readline.strip
+          content = f.read(i[:length])
+        end
       end
       [parse_headers(header), content]
     end

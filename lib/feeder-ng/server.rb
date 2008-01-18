@@ -71,10 +71,16 @@ module FeederNG
         elsif request.get? && m  = request.path_match(%r{/channels/(.*)})
           if @channels.key?(m.captures[0])
             params = Mongrel::HttpRequest.query_parse(request.params['QUERY_STRING'])
+            headers = content = nil
             if params.key? 'next'
-              headers, content = @channels[m.captures[0]].get_next
+              if params.key? 'group'
+                headers, content = @channels[m.captures[0]].get_next_by_group(params['group'])
+              else
+                headers, content = @channels[m.captures[0]].get_next
+              end
               if headers && content
                 response.start(200) do |head, out|
+                  head['Content-Location'] = "/channels/#{m.captures[0]}/#{headers[:id]}"
                   out.write content
                 end
               end

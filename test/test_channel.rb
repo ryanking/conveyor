@@ -84,4 +84,43 @@ class TestFeederNGChannel < Test::Unit::TestCase
     assert_equal nil, d.get_next
   end
 
+  def test_get_next_by_group
+    FileUtils.rm_r('/tmp/bar') rescue nil
+    c = Channel.new('/tmp/bar')
+    c.post 'foo'
+    c.post 'bar'
+    c.post 'bam'
+    
+    assert_equal 'foo', c.get_next_by_group('foo')[1]
+    assert_equal 'bar', c.get_next_by_group('foo')[1]
+    assert_equal 'bam', c.get_next_by_group('foo')[1]
+    assert_equal nil, c.get_next_by_group('foo')
+    
+    assert_equal 'foo', c.get_next_by_group('bar')[1]
+    assert_equal 'bar', c.get_next_by_group('bar')[1]
+    assert_equal 'bam', c.get_next_by_group('bar')[1]
+    assert_equal nil, c.get_next_by_group('bar')
+  end
+
+  def test_get_next_by_group_interupted
+    FileUtils.rm_r('/tmp/bar') rescue nil
+    c = Channel.new('/tmp/bar')
+    c.post 'foo'
+    c.post 'bar'
+    c.post 'bam'
+    
+    assert_equal 'foo', c.get_next_by_group('foo')[1]
+    assert_equal 'bar', c.get_next_by_group('foo')[1]
+    assert_equal 'foo', c.get_next_by_group('bar')[1]
+    assert_equal 'bar', c.get_next_by_group('bar')[1]
+
+    c = nil
+    GC.start
+    c = Channel.new('/tmp/bar')
+
+    assert_equal 'bam', c.get_next_by_group('foo')[1]
+    assert_equal nil, c.get_next_by_group('foo')    
+    assert_equal 'bam', c.get_next_by_group('bar')[1]
+    assert_equal nil, c.get_next_by_group('bar')
+  end
 end

@@ -51,3 +51,13 @@ Response
 : success: 200
 
 If this is called for the first time, it will return the first item in the channel. Otherwise it will return the next item.
+
+### Get Next by Group (Multi-consumer queue) ###
+
+Request
+: GET /channels/{channel name}?next&group=foo
+
+Response
+: success: 200
+
+If this is called for the first time, it will return the first item in the channel. Otherwise it will return the next item.

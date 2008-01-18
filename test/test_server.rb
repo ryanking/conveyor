@@ -26,17 +26,17 @@ class TestFeederNGServer < Test::Unit::TestCase
   
   def test_create_channel
     Net::HTTP.start('localhost', 8888) do |h|
-      req = h.put('/channels/foo', '')
+      req = h.put('/channels/foo', '', {'Content-Type' => 'application/octet-stream'})
       assert_equal Net::HTTPCreated, req.class
 
-      req = h.post('/channels/foo', 'foo')
+      req = h.post('/channels/foo', 'foo', {'Content-Type' => 'application/octet-stream'})
       assert_equal Net::HTTPAccepted, req.class
     end
   end
   
   def test_post
     Net::HTTP.start('localhost', 8888) do |h|
-      req = h.put('/channels/bar', '')
+      req = h.put('/channels/bar', '', {'Content-Type' => 'application/octet-stream'})
       assert_equal Net::HTTPCreated, req.class
 
       data =
@@ -49,7 +49,7 @@ class TestFeederNGServer < Test::Unit::TestCase
         "yY3vhjeq","2IDeF0ccG8tRZIZSekz6fUii29"]
         
       data.each do |d|
-        req = h.post('/channels/bar', d)
+        req = h.post('/channels/bar', d, {'Content-Type' => 'application/octet-stream'})
         assert_equal Net::HTTPAccepted, req.class
       end
 
@@ -62,7 +62,7 @@ class TestFeederNGServer < Test::Unit::TestCase
   
   def test_invalid_channel
     Net::HTTP.start('localhost', 8888) do |h|
-      req = h.put('/channels/|', '')
+      req = h.put('/channels/|', '', {'Content-Type' => 'application/octet-stream'})
       assert_equal Net::HTTPNotAcceptable, req.class
     end
     
@@ -70,7 +70,7 @@ class TestFeederNGServer < Test::Unit::TestCase
 
   def test_get_next
     Net::HTTP.start('localhost', 8888) do |h|
-      req = h.put('/channels/bar', '')
+      req = h.put('/channels/bar', '', {'Content-Type' => 'application/octet-stream'})
       assert_equal Net::HTTPCreated, req.class
 
       data =
@@ -83,7 +83,7 @@ class TestFeederNGServer < Test::Unit::TestCase
         "yY3vhjeq","2IDeF0ccG8tRZIZSekz6fUii29"]
         
       data.each do |d|
-        req = h.post('/channels/bar', d)
+        req = h.post('/channels/bar', d, {'Content-Type' => 'application/octet-stream'})
         assert_equal Net::HTTPAccepted, req.class
       end
 

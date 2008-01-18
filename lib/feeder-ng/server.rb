@@ -86,7 +86,9 @@ module FeederNG
           if headers && content
             response.start(200) do |head, out|
               head['Content-Location'] = "/channels/#{m.captures[0]}/#{headers[:id]}"
-              head['Content-MD5'] = headers[:hash]
+              head['Content-MD5']      = headers[:hash]
+              head['Content-Type']     = 'application/octet-stream'
+              head['Last-Modified']    = Time.parse(headers[:time]).gmtime.to_s
               out.write content
             end
           end

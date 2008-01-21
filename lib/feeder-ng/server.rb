@@ -54,9 +54,15 @@ module FeederNG
           end
         elsif request.post? && m = request.path_match(%r{/channels/(.*)})
           if @channels.key?(m.captures[0])
-            id = @channels[m.captures[0]].post(request.body.read)
-            response.start(202) do |head, out|
-              head["Location"] = "/channels/#{m.captures[0]}/#{id}"
+            if request.params.include?('HTTP_DATE') && d = Time.parse(request.params['HTTP_DATE'])
+              id = @channels[m.captures[0]].post(request.body.read)
+              response.start(202) do |head, out|
+                head["Location"] = "/channels/#{m.captures[0]}/#{id}"
+              end
+            else
+              response.start(400) do |head, out|
+                out.write "A valid Date header is required for all POSTs."
+              end
             end
           end
 

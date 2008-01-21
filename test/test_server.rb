@@ -31,7 +31,7 @@ class TestFeederNGServer < Test::Unit::TestCase
       req = h.put('/channels/foo', '', {'Content-Type' => 'application/octet-stream'})
       assert_equal Net::HTTPCreated, req.class
 
-      req = h.post('/channels/foo', 'foo', {'Content-Type' => 'application/octet-stream'})
+      req = h.post('/channels/foo', 'foo', {'Content-Type' => 'application/octet-stream', 'Date' => Time.now.to_s})
       assert_equal Net::HTTPAccepted, req.class
     end
   end
@@ -51,7 +51,7 @@ class TestFeederNGServer < Test::Unit::TestCase
         "yY3vhjeq","2IDeF0ccG8tRZIZSekz6fUii29"]
         
       data.each do |d|
-        req = h.post('/channels/bar', d, {'Content-Type' => 'application/octet-stream'})
+        req = h.post('/channels/bar', d, {'Content-Type' => 'application/octet-stream', 'Date' => Time.now.to_s})
         assert_equal Net::HTTPAccepted, req.class
       end
 
@@ -85,7 +85,7 @@ class TestFeederNGServer < Test::Unit::TestCase
         "yY3vhjeq","2IDeF0ccG8tRZIZSekz6fUii29"]
         
       data.each do |d|
-        req = h.post('/channels/bar', d, {'Content-Type' => 'application/octet-stream'})
+        req = h.post('/channels/bar', d, {'Content-Type' => 'application/octet-stream', 'Date' => Time.now.to_s})
         assert_equal Net::HTTPAccepted, req.class
       end
 

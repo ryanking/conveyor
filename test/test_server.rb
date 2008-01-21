@@ -9,6 +9,8 @@ require "feeder-ng/server"
 
 class TestFeederNGServer < Test::Unit::TestCase
   def setup
+    FileUtils.rm_r('/tmp/asdf') rescue nil
+    FileUtils.mkdir('/tmp/asdf')
     @server = FeederNG::Server.new("127.0.0.1", 8888, '/tmp/asdf')
     @server.run
   end

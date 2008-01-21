@@ -61,7 +61,7 @@ class TestFeederNGChannel < Test::Unit::TestCase
     c.post 'foo'
     c.post 'bar'
     c.post 'bam'
-    
+
     assert_equal 'foo', c.get_next[1]
     assert_equal 'bar', c.get_next[1]
     assert_equal 'bam', c.get_next[1]

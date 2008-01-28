@@ -3,5 +3,15 @@ Manifest.txt
 README.txt
 Rakefile
 bin/feeder-ng
-lib/feeder-ng.rb
+lib/conveyor.rb
+lib/conveyor/base_channel.rb
+lib/conveyor/channel.rb
+lib/conveyor/replicated_channel.rb
+lib/conveyor/server.rb
+lib/priority_queue.rb
+test/rand.rb
+test/test_channel.rb
 test/test_feeder-ng.rb
+test/test_priority_queue.rb
+test/test_replicated_channel.rb
+test/test_server.rb

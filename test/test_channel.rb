@@ -1,9 +1,9 @@
 require "test/unit"
 require 'fileutils'
-require "feeder-ng/channel"
+require "conveyor/channel"
 
-class TestFeederNGChannel < Test::Unit::TestCase
-  include FeederNG
+class TestConveyorChannel < Test::Unit::TestCase
+  include Conveyor
   def test_init
     FileUtils.rm_r('/tmp/bar')
     assert_nothing_raised do

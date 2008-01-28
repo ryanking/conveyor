@@ -2,10 +2,10 @@
 
 require 'rubygems'
 require 'hoe'
-require './lib/feeder-ng.rb'
+require './lib/conveyor'
 
-Hoe.new('feeder-ng', FeederNG::VERSION) do |p|
-  p.rubyforge_name = 'feeder-ng'
+Hoe.new('conveyor', Conveyor::VERSION) do |p|
+  p.rubyforge_name = 'Conveyor'
   p.author = 'Ryan King'
   p.email = 'ryan@theryanking.com'
   p.summary = 'Stuff'

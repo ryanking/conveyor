@@ -1,6 +1,6 @@
-require 'feeder-ng/base_channel'
+require 'conveyor/base_channel'
 
-module FeederNG
+module Conveyor
   class Channel < BaseChannel
 
     def initialize directory

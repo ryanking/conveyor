@@ -1,14 +1,14 @@
 require "test/unit"
 require 'fileutils'
-require "feeder-ng/replicated_channel"
+require "conveyor/replicated_channel"
 
 class TestReplicatedChannel < Test::Unit::TestCase
   def test_basic
     FileUtils.rm_r '/tmp/foo' rescue nil
     FileUtils.rm_r '/tmp/bar' rescue nil
     
-    c1 = FeederNG::ReplicatedChannel.new '/tmp/foo'
-    c2 = FeederNG::ReplicatedChannel.new '/tmp/bar'
+    c1 = Conveyor::ReplicatedChannel.new '/tmp/foo'
+    c2 = Conveyor::ReplicatedChannel.new '/tmp/bar'
     
     c1.peers << c2
     c2.peers << c1
@@ -36,8 +36,8 @@ class TestReplicatedChannel < Test::Unit::TestCase
     FileUtils.rm_r '/tmp/foo' rescue nil
     FileUtils.rm_r '/tmp/bar' rescue nil
     
-    c1 = FeederNG::ReplicatedChannel.new '/tmp/foo'
-    c2 = FeederNG::ReplicatedChannel.new '/tmp/bar'
+    c1 = Conveyor::ReplicatedChannel.new '/tmp/foo'
+    c2 = Conveyor::ReplicatedChannel.new '/tmp/bar'
     
     c1.peers << c2
     c2.peers << c1

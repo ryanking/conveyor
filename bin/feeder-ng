@@ -2,5 +2,5 @@
 
 $: << 'lib'
 
-require 'feeder-ng/server'
-FeederNG::Server.new('localhost', ARGV[0], ARGV[1]).run.join
+require 'conveyor/server'
+Conveyor::Server.new('localhost', ARGV[0], ARGV[1]).run.join

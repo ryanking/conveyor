@@ -1,4 +1,4 @@
-# FeederNG protocol #
+# Conveyor protocol #
 
 ## Create a channel ##
 

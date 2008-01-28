@@ -1,6 +1,6 @@
-require 'feeder-ng/base_channel'
+require 'conveyor/base_channel'
 
-module FeederNG
+module Conveyor
   class ReplicatedChannel < BaseChannel
     attr_accessor :peers
     attr_reader :commit_thread

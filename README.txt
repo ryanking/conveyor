@@ -1,10 +1,10 @@
-feeder-ng
+conveyor
     by Ryan King
     http://theryanking.com/
 
 == DESCRIPTION:
   
-A feeder.
+A conveyor.
 
 == FEATURES/PROBLEMS:
   
@@ -20,7 +20,7 @@ A feeder.
 
 == INSTALL:
 
-* gem install feeder-ng
+* gem install conveyor
 
 == FILE FORMATS
 ===  DATA FILES

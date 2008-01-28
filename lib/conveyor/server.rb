@@ -1,6 +1,6 @@
 require 'rubygems'
 require 'mongrel'
-require 'feeder-ng/channel'
+require 'conveyor/channel'
 require 'fileutils'
 
 class Mongrel::HttpRequest
@@ -21,7 +21,7 @@ class Mongrel::HttpRequest
   end
 end
 
-module FeederNG
+module Conveyor
   class Server < Mongrel::HttpServer
 
     class ChannelsHandler < Mongrel::HttpHandler
@@ -37,7 +37,7 @@ module FeederNG
       end
 
       def create_new_channel channel_name
-        @channels[channel_name] = FeederNG::Channel.new(File.join(@data_directory, channel_name))
+        @channels[channel_name] = Conveyor::Channel.new(File.join(@data_directory, channel_name))
       end
 
       def process request, response

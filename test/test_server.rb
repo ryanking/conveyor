@@ -1,17 +1,12 @@
-# setup
-  # create feeder-mongrel server
-
-# each test
-  # perform action against server with nethttp
-  
 require "test/unit"
-require "feeder-ng/server"
+require "conveyor/server"
+require 'net/http'
 
-class TestFeederNGServer < Test::Unit::TestCase
+class TestConveyorServer < Test::Unit::TestCase
   def setup
     FileUtils.rm_r('/tmp/asdf') rescue nil
     FileUtils.mkdir('/tmp/asdf')
-    @server = FeederNG::Server.new("127.0.0.1", 8888, '/tmp/asdf')
+    @server = Conveyor::Server.new("127.0.0.1", 8888, '/tmp/asdf')
     @server.run
   end
   

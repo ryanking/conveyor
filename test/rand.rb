@@ -1,5 +1,5 @@
 $: << 'lib'
-require 'feeder-ng/channel'
+require 'conveyor/channel'
 
 def rand_str(len, domain)
   (1..len).inject("") { |s, x| s << domain[rand(domain.length)] }
@@ -8,7 +8,7 @@ end
 alphanum = [ ('a'..'z').to_a, ('A'..'Z').to_a, ('0'..'9').to_a ].flatten
 data = []
 
-channel = FeederNG::Channel.new '/tmp/bar'
+channel = Conveyor::Channel.new '/tmp/bar'
 
 puts "writing random data"
 1000.times{channel.post(d=rand_str(rand(10000), alphanum)); data << d}

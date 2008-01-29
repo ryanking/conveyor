@@ -1,56 +1,38 @@
-conveyor
-    by Ryan King
-    http://theryanking.com/
+= Conveyor
 
-== DESCRIPTION:
-  
-A conveyor.
+by Ryan King (http://theryanking.com)
 
-== FEATURES/PROBLEMS:
-  
-* Rewindable broadcast of data.
+== Description
 
-== SYNOPSIS:
+* Like TiVo for your data
+* A distributed rewindable multi-queue
 
-  You put stuff in and in it comes back out!
+== Overview
+
+A Conveyor server provides an HTTP interface that allows for POSTing and GETing items in streams called Channels.
+
+POSTing is simple: you add an item to the channel and it gets persisted and assigned a sequence number.
+
+Consuming items from a Channel is more flexible, you can:
+
+* consume by id number ("GET /channels/foo/1337")
+* consume by from a global queue ("GET /channels/foo?next")
+* consume from a queue group ("GET /channels/foo?next&group=bar")
+  * this allows multiple groups of consumers to each have what appears to them to be a queue.
+
+The payload for all of these is a stream of bytes. Conveyor will stream it back exactly as it was given.
+
+Ok, actually rewinding functionality is still TODO, but should be done soon.
 
 == REQUIREMENTS:
 
 * Ruby
+* Mongrel
+* active_support
 
 == INSTALL:
 
 * gem install conveyor
-
-== FILE FORMATS
-===  DATA FILES
-
-id time offset length hash
-content
-...
-
-contrived example:
-
-1213124 2008-01-05T13:35:32 1234 11 asdfasdfasdfasdfasdfasdfasdfa
-foo bar bam
-
-* space separated line of metadata followed by content
-* delimiter might be useful for sanity checking, but the hash could probably suffice for ensuring that the offset was calculated and persisted properly. We should look at what ARC does here.
-* offset is to beginning of metadata line
-* length doesn't include a trailing \n that separates the content from the next bit of metadata (this might not be necessary)
-
-=== INDEX FILES
-
-id time offset length hash file
-
-contrived example:
-
-1213124 2008-01-05T13:35:32 1234 11 asdfasdfasdfasdfasdfasdfasdfa 1
-
-notes:
-* 1 is the filename
-* assuming a lucene-style directory of datafiles + ToC/index
-* given that the files are written sequentially we can avoid writing every entry to the index file (as long as you write the first and last entry to the index). At most this means you have to read n entries, where n is the gap between index entries. Given that most clients will have persistent connections and be reading sequentially, we can do some clever things on the server side to make this really efficient (basically meaning you'll only have to pay that penalty on the first item you read).
 
 
 == LICENSE:

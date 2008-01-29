@@ -1,7 +1,7 @@
 # a naive (performance-wise) priority queue implementation
 #
 # modified from http://www.rubyquiz.com/quiz98.html
-class PriorityQueue
+class PriorityQueue #:nodoc: this isn't ready for primetime yet
   def initialize sort_proc = nil
     @list = []
     @sort_proc = sort_proc || proc{|x,y| x <=> y}

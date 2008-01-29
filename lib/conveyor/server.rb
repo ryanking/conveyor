@@ -22,8 +22,11 @@ class Mongrel::HttpRequest
 end
 
 module Conveyor
+  
+  # An HTTP server for Conveyor.
   class Server < Mongrel::HttpServer
 
+    # A Mongrel handler for multiple Conveyor Channels.
     class ChannelsHandler < Mongrel::HttpHandler
 
       def initialize data_directory
@@ -103,6 +106,8 @@ module Conveyor
       end
     end
 
+    # +host+ and +port+ are passed along to Mongrel::HttpServer for TCP binding. +data_directory+ is used to store
+    # all channel data and should be created before intializing a Server.
     def initialize(host, port, data_directory)
       super(host, port)
       ch = ChannelsHandler.new(data_directory)

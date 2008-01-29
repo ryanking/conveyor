@@ -4,6 +4,9 @@ require 'active_support/core_ext/date/conversions'
 require 'priority_queue'
 
 module Conveyor
+  # BaseChannel
+  #
+  # Base implementation for channels. Not useful to instantiate directly.
   class BaseChannel
 
     NAME_PATTERN = %r{\A[a-zA-Z\-0-9]+\Z}

@@ -1,7 +1,7 @@
 require 'conveyor/base_channel'
 
 module Conveyor
-  class ReplicatedChannel < BaseChannel
+  class ReplicatedChannel < BaseChannel # :nodoc: not ready for primetime
     attr_accessor :peers
     attr_reader :commit_thread
     attr_reader :ping_thread

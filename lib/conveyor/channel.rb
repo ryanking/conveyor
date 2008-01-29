@@ -1,9 +1,13 @@
 require 'conveyor/base_channel'
 
 module Conveyor
+  # Channel
+  #
+  # A basic channel.
   class Channel < BaseChannel
 
-    def initialize directory
+    # If +directory+ doesn't already exist, it will be created during initialization.
+    def initialize directory 
       @group_iterators         = {}
       @group_iterators_files   = {}
       
@@ -33,10 +37,12 @@ module Conveyor
       end
     end
 
+    # Add data to the channel.
     def post data
       commit data
     end
     
+    # Returns the next item from the global (non-group) iterator.
     def get_next
       r = nil
       Thread.exclusive do
@@ -47,14 +53,7 @@ module Conveyor
       r
     end
 
-    def group_iterators_file group
-      unless @group_iterators_files[group]
-        @group_iterators_files[group] = File.open(File.join(@directory, 'iterator-' + group), 'a+')
-        @group_iterators_files[group].sync = true
-      end
-      yield @group_iterators_files[group]
-    end
-
+    # Returns the next item for +group+. If +group+ hasn't been seen before, the first item is returned.
     def get_next_by_group group
       r = nil
       Thread.exclusive do
@@ -67,5 +66,16 @@ module Conveyor
       end
       r
     end
+
+    private
+    
+    def group_iterators_file group
+      unless @group_iterators_files[group]
+        @group_iterators_files[group] = File.open(File.join(@directory, 'iterator-' + group), 'a+')
+        @group_iterators_files[group].sync = true
+      end
+      yield @group_iterators_files[group]
+    end
+    
   end
 end

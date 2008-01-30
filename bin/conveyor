@@ -1,5 +1,10 @@
 #!/usr/bin/env ruby -KU
 
+unless ARGV.length == 2
+  puts "usage: #{$0} <port> <data directory>"
+  exit
+end
+
 $: << 'lib'
 
 require 'conveyor/server'

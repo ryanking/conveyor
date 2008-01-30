@@ -2,7 +2,7 @@ History.txt
 Manifest.txt
 README.txt
 Rakefile
-bin/feeder-ng
+bin/conveyor
 lib/conveyor.rb
 lib/conveyor/base_channel.rb
 lib/conveyor/channel.rb

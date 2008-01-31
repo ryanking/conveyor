@@ -123,4 +123,24 @@ class TestConveyorChannel < Test::Unit::TestCase
     assert_equal 'bam', c.get_next_by_group('bar')[1]
     assert_equal nil, c.get_next_by_group('bar')
   end
+
+  def test_channel_status
+    FileUtils.rm_r('/tmp/bar') rescue nil
+    c = Channel.new('/tmp/bar')
+    c.post 'foo'
+    c.post 'bar'
+    c.post 'bam'
+    
+    status = {
+      :directory => '/tmp/bar', 
+      :index => {:size => 3},
+      :data_files => [
+        {:path => '/tmp/bar/0', :bytes => 210}
+        ],
+      :iterator => {:position => 0},
+      :iterator_groups => {}
+    }
+    
+    assert_equal(status, c.status)
+  end
 end

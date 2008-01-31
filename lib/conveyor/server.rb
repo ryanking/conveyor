@@ -2,6 +2,7 @@ require 'rubygems'
 require 'mongrel'
 require 'conveyor/channel'
 require 'fileutils'
+require 'json'
 
 class Mongrel::HttpRequest
   def put?
@@ -83,6 +84,10 @@ module Conveyor
                   headers, content = @channels[m.captures[0]].get_next_by_group(params['group'])
                 else
                   headers, content = @channels[m.captures[0]].get_next
+                end
+              else
+                response.start(200) do |head, out|
+                  out.write @channels[m.captures[0]].status.to_json
                 end
               end
             end

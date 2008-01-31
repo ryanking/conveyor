@@ -90,4 +90,33 @@ class TestConveyorServer < Test::Unit::TestCase
       end
     end
   end
+
+  def test_status
+    Net::HTTP.start('localhost', 8888) do |h|
+      req = h.put('/channels/bar', '', {'Content-Type' => 'application/octet-stream'})
+      assert_equal Net::HTTPCreated, req.class
+
+      data =
+      ["ZqZyDN2SouQCYEHYS0LuM1XeqsF0MKIbFEBE6xQ972VqEcjs21wJSosvZMWEH1lq5ukTq4Ze"]
+        
+      data.each do |d|
+        req = h.post('/channels/bar', d, {'Content-Type' => 'application/octet-stream', 'Date' => Time.now.to_s})
+        assert_equal Net::HTTPAccepted, req.class
+      end
+
+      req = h.get("/channels/bar")
+      assert_kind_of Net::HTTPOK, req
+      json = {
+        "iterator_groups" => {},
+        "index"=>{"size"=>1},
+        "directory"=>"/tmp/asdf/bar",
+        "data_files"=>[{"path"=>"/tmp/asdf/bar/0","bytes"=>139}],
+        "iterator"=>{"position"=>0}
+      }
+      assert_equal json, JSON::parse(req.body)
+      
+    end
+
+
+  end
 end

@@ -7,7 +7,7 @@ module Conveyor
   class Channel < BaseChannel
 
     # If +directory+ doesn't already exist, it will be created during initialization.
-    def initialize directory 
+    def initialize directory
       @group_iterators         = {}
       @group_iterators_files   = {}
       
@@ -65,6 +65,18 @@ module Conveyor
         end
       end
       r
+    end
+
+    def status
+      {
+        :directory => @directory,
+        :index     => {
+          :size => @index.length
+        },
+        :data_files => @data_files.collect{|f| {:path => f.path, :bytes => File.size(f.path)}},
+        :iterator => {:position => @iterator},
+        :iterator_groups => @group_iterators.inject({}){|k,v, m| m[k] = v; m}
+      }
     end
 
     private

@@ -14,6 +14,7 @@ Hoe.new('conveyor', Conveyor::VERSION) do |p|
   p.changes = p.paragraphs_of('History.txt', 0..1).join("\n\n")
   p.extra_deps << ['mongrel']
   p.extra_deps << ['activesupport']
+  p.extra_deps << ['json']
 end
 
 # vim: syntax=Ruby

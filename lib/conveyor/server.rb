@@ -3,6 +3,7 @@ require 'mongrel'
 require 'conveyor/channel'
 require 'fileutils'
 require 'json'
+require 'logger'
 
 class Mongrel::HttpRequest
   def put?
@@ -30,8 +31,14 @@ module Conveyor
     # A Mongrel handler for multiple Conveyor Channels.
     class ChannelsHandler < Mongrel::HttpHandler
 
-      def initialize data_directory
+      def initialize data_directory, log_directory=nil
         @data_directory = data_directory
+        if log_directory
+          @logger = Logger.new File.join(log_directory, 'conveyor.log')
+        else
+          @logger = Logger.new '/dev/null'
+        end
+
         @channels = {}
         Dir.entries(@data_directory).each do |e|
           if !['.', '..'].include?(e) && File.directory?(File.join(@data_directory, e))
@@ -44,6 +51,10 @@ module Conveyor
         @channels[channel_name] = Conveyor::Channel.new(File.join(@data_directory, channel_name))
       end
 
+      def i str
+        @logger.info str
+      end
+
       def process request, response
         if request.put? && m = request.path_match(%r{/channels/(.*)})
           if Channel.valid_channel_name?(m.captures[0])
@@ -51,9 +62,11 @@ module Conveyor
             response.start(201) do |head, out|
               out.write("created channel #{m.captures[0]}")
             end
+            i "#{request.params["REMOTE_ADDR"]} PUT #{request.params["REQUEST_PATH"]} 201"
           else
             response.start(406) do |head, out|
               out.write("invalid channel name. must match #{Channel::NAME_PATTERN}")
+              i "#{request.params["REMOTE_ADDR"]} GET #{request.params["REQUEST_PATH"]} 406"
             end
           end
         elsif request.post? && m = request.path_match(%r{/channels/(.*)})
@@ -63,10 +76,12 @@ module Conveyor
               response.start(202) do |head, out|
                 head["Location"] = "/channels/#{m.captures[0]}/#{id}"
               end
+              i "#{request.params["REMOTE_ADDR"]} GET #{request.params["REQUEST_PATH"]} 202"
             else
               response.start(400) do |head, out|
                 out.write "A valid Date header is required for all POSTs."
               end
+              i "#{request.params["REMOTE_ADDR"]} GET #{request.params["REQUEST_PATH"]} 400"
             end
           end
 
@@ -105,6 +120,7 @@ module Conveyor
               head['Last-Modified']    = Time.parse(headers[:time]).gmtime.to_s
               out.write content
             end
+            i "#{request.params["REMOTE_ADDR"]} GET #{request.params["REQUEST_PATH"]} 200 #{headers[:id]} #{headers[:length]} #{headers[:hash]}"
           end
           
         end
@@ -113,9 +129,9 @@ module Conveyor
 
     # +host+ and +port+ are passed along to Mongrel::HttpServer for TCP binding. +data_directory+ is used to store
     # all channel data and should be created before intializing a Server.
-    def initialize(host, port, data_directory)
+    def initialize(host, port, data_directory, log_directory = nil)
       super(host, port)
-      ch = ChannelsHandler.new(data_directory)
+      ch = ChannelsHandler.new(data_directory, log_directory)
       register("/channels", ch)
     end
   end

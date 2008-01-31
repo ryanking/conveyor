@@ -1,11 +1,32 @@
 #!/usr/bin/env ruby -KU
 
-unless ARGV.length == 2
-  puts "usage: #{$0} <port> <data directory>"
+require 'optparse'
+
+options = {:port => 8888}
+opts = OptionParser.new do |opts|
+  opts.summary_indent = " "
+  opts.banner = "usage: #{$0} [options] <data directory>"
+
+  opts.separator ""
+  opts.separator "Options:"
+  opts.on("-p PORT", Integer, "HTTP port number. Default: 8888") do |port|
+    options[:port] = port.to_i || 8888
+  end
+  
+  opts.on("-l LOGDIRECTORY", "Directory for log files.") do |log_dir|
+    options[:log_directory] = log_dir
+  end
+  
+end
+
+opts.parse!
+
+unless ARGV.length == 1
+  puts opts.help
   exit
 end
 
 $: << 'lib'
 
 require 'conveyor/server'
-Conveyor::Server.new('0.0.0.0', ARGV[0].to_i, ARGV[1]).run.join
+Conveyor::Server.new('0.0.0.0', options[:port], ARGV[0], options[:log_directory]).run.join

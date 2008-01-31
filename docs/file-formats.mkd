@@ -27,3 +27,9 @@ notes:
 * 1 is the filename
 * assuming a lucene-style directory of datafiles + ToC/index
 * given that the files are written sequentially we can avoid writing every entry to the index file (as long as you write the first and last entry to the index). At most this means you have to read n entries, where n is the gap between index entries. Given that most clients will have persistent connections and be reading sequentially, we can do some clever things on the server side to make this really efficient (basically meaning you'll only have to pay that penalty on the first item you read).
+
+== LOG FILES
+
+When given -l LOGDIR, conveyor will write a log file with this format:
+
+  IP HTTP_VERB REQUEST_URI STATUS ID LENGTH HASH

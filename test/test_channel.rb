@@ -66,6 +66,7 @@ class TestConveyorChannel < Test::Unit::TestCase
     assert_equal 'bar', c.get_next[1]
     assert_equal 'bam', c.get_next[1]
     assert_equal nil, c.get_next
+    assert_equal 3, c.status[:iterator][:position]
   end
 
   def test_get_next_interupted

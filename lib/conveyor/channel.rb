@@ -46,11 +46,15 @@ module Conveyor
     def get_next
       r = nil
       Thread.exclusive do
-        @iterator += 1 # TODO make sure this is lower than @last_id
-        r = get(@iterator)
-        @iterator_file.write("#{@iterator}\n")
+        if @iterator < @last_id
+          @iterator += 1
+          r = get(@iterator)
+          @iterator_file.write("#{@iterator}\n")
+          r
+        else
+          nil
+        end
       end
-      r
     end
 
     # Returns the next item for +group+. If +group+ hasn't been seen before, the first item is returned.

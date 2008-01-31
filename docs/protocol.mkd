@@ -25,7 +25,7 @@ A post to a channel URL with the message in the body.
 ### Get by id ###
 
 Request
-: GET /channel/{channel name}/{id}
+: GET /channels/{channel name}/{id}
 
 Response
 : success: 200, failure: 404

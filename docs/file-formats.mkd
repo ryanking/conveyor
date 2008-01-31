@@ -33,3 +33,7 @@ notes:
 When given -l LOGDIR, conveyor will write a log file with this format:
 
   IP HTTP_VERB REQUEST_URI STATUS ID LENGTH HASH
+  
+(In addition to the formatting that Logger adds.)
+
+Not every operation has every bit of that data, but optional bits are on the right.

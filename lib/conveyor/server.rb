@@ -58,11 +58,18 @@ module Conveyor
       def process request, response
         if request.put? && m = request.path_match(%r{/channels/(.*)})
           if Channel.valid_channel_name?(m.captures[0])
-            create_new_channel m.captures[0]
-            response.start(201) do |head, out|
-              out.write("created channel #{m.captures[0]}")
+            if !@channels.key?(m.captures[0])
+              create_new_channel m.captures[0]
+              response.start(201) do |head, out|
+                out.write("created channel #{m.captures[0]}")
+              end
+              i "#{request.params["REMOTE_ADDR"]} PUT #{request.params["REQUEST_PATH"]} 201"
+            else
+              response.start(202) do |head, out|
+                out.write("channel already exists. didn't do anything")
+              end
+              i "#{request.params["REMOTE_ADDR"]} PUT #{request.params["REQUEST_PATH"]} 202"
             end
-            i "#{request.params["REMOTE_ADDR"]} PUT #{request.params["REQUEST_PATH"]} 201"
           else
             response.start(406) do |head, out|
               out.write("invalid channel name. must match #{Channel::NAME_PATTERN}")

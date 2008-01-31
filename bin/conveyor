@@ -8,4 +8,4 @@ end
 $: << 'lib'
 
 require 'conveyor/server'
-Conveyor::Server.new('localhost', ARGV[0], ARGV[1]).run.join
+Conveyor::Server.new('0.0.0.0', ARGV[0].to_i, ARGV[1]).run.join

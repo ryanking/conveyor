@@ -5,7 +5,7 @@ require 'hoe'
 require './lib/conveyor'
 
 Hoe.new('conveyor', Conveyor::VERSION) do |p|
-  p.rubyforge_name = 'Conveyor'
+  p.rubyforge_name = 'conveyor'
   p.author = 'Ryan King'
   p.email = 'ryan@theryanking.com'
   p.summary = 'Like TiVo for your data.'

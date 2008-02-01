@@ -2,15 +2,15 @@
 
 require 'optparse'
 
-options = {:port => 8888}
+options = {:port => 8011}
 opts = OptionParser.new do |opts|
   opts.summary_indent = " "
   opts.banner = "usage: #{$0} [options] <data directory>"
 
   opts.separator ""
   opts.separator "Options:"
-  opts.on("-p PORT", Integer, "HTTP port number. Default: 8888") do |port|
-    options[:port] = port.to_i || 8888
+  opts.on("-p PORT", Integer, "HTTP port number. Default: 8011") do |port|
+    options[:port] = port
   end
   
   opts.on("-l LOGDIRECTORY", "Directory for log files.") do |log_dir|

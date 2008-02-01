@@ -2,7 +2,7 @@ require 'net/http'
 
 module Conveyor
   class Client
-    def initialize host, port = 8888
+    def initialize host, port = 8011
       @host = host
       @port = port
       connect!

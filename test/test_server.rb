@@ -6,7 +6,7 @@ class TestConveyorServer < Test::Unit::TestCase
   def setup
     FileUtils.rm_r('/tmp/asdf') rescue nil
     FileUtils.mkdir('/tmp/asdf')
-    @server = Conveyor::Server.new("127.0.0.1", 8888, '/tmp/asdf')
+    @server = Conveyor::Server.new("127.0.0.1", 8011, '/tmp/asdf')
     @server.run
   end
   
@@ -15,14 +15,14 @@ class TestConveyorServer < Test::Unit::TestCase
   end
   
   def test_channels
-    Net::HTTP.start("localhost", 8888) do |h|
+    Net::HTTP.start("localhost", 8011) do |h|
       req = h.get('/channels')
       assert_equal Net::HTTPOK, req.class
     end
   end
   
   def test_create_channel
-    Net::HTTP.start('localhost', 8888) do |h|
+    Net::HTTP.start('localhost', 8011) do |h|
       req = h.put('/channels/foo', '', {'Content-Type' => 'application/octet-stream'})
       assert_equal Net::HTTPCreated, req.class
 
@@ -32,7 +32,7 @@ class TestConveyorServer < Test::Unit::TestCase
   end
   
   def test_post
-    Net::HTTP.start('localhost', 8888) do |h|
+    Net::HTTP.start('localhost', 8011) do |h|
       req = h.put('/channels/bar', '', {'Content-Type' => 'application/octet-stream'})
       assert_equal Net::HTTPCreated, req.class
 
@@ -58,7 +58,7 @@ class TestConveyorServer < Test::Unit::TestCase
   end
   
   def test_invalid_channel
-    Net::HTTP.start('localhost', 8888) do |h|
+    Net::HTTP.start('localhost', 8011) do |h|
       req = h.put('/channels/|', '', {'Content-Type' => 'application/octet-stream'})
       assert_equal Net::HTTPNotAcceptable, req.class
     end
@@ -66,7 +66,7 @@ class TestConveyorServer < Test::Unit::TestCase
   end
 
   def test_get_next
-    Net::HTTP.start('localhost', 8888) do |h|
+    Net::HTTP.start('localhost', 8011) do |h|
       req = h.put('/channels/bar', '', {'Content-Type' => 'application/octet-stream'})
       assert_equal Net::HTTPCreated, req.class
 
@@ -92,7 +92,7 @@ class TestConveyorServer < Test::Unit::TestCase
   end
 
   def test_status
-    Net::HTTP.start('localhost', 8888) do |h|
+    Net::HTTP.start('localhost', 8011) do |h|
       req = h.put('/channels/bar', '', {'Content-Type' => 'application/octet-stream'})
       assert_equal Net::HTTPCreated, req.class
 
@@ -119,7 +119,7 @@ class TestConveyorServer < Test::Unit::TestCase
   end
 
   def test_rewinding
-    Net::HTTP.start('localhost', 8888) do |h|
+    Net::HTTP.start('localhost', 8011) do |h|
       req = h.put('/channels/bar', '', {'Content-Type' => 'application/octet-stream'})
       assert_equal Net::HTTPCreated, req.class
 

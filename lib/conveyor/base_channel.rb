@@ -1,6 +1,6 @@
 require 'digest/md5'
 require 'rubygems'
-require 'active_support/core_ext/date/conversions'
+require 'time'
 require 'priority_queue'
 
 module Conveyor

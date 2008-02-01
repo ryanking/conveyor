@@ -55,9 +55,17 @@ If this is called for the first time, it will return the first item in the chann
 ### Get Next by Group (Multi-consumer queue) ###
 
 Request
-: GET /channels/{channel name}?next&group=foo
+: GET /channels/{channel name}?next&group={group name}
 
 Response
 : success: 200
 
 If this is called for the first time, it will return the first item in the channel. Otherwise it will return the next item.
+
+### Rewinding to id ###
+
+Request
+: POST /channels/{channel name}?rewind_id={id}
+
+Response
+:success: 200

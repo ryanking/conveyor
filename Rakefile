@@ -10,7 +10,6 @@ Hoe.new('conveyor', Conveyor::VERSION) do |p|
   p.email = 'ryan@theryanking.com'
   p.remote_rdoc_dir = ''
   p.extra_deps << ['mongrel']
-  p.extra_deps << ['activesupport']
   p.extra_deps << ['json']
 end
 

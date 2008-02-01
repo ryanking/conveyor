@@ -83,6 +83,25 @@ module Conveyor
       }
     end
 
+    def rewind *opts
+      opts = opts.first
+      if opts.key?(:id)
+        if opts.key?(:group)
+          Thread.exclusive do
+            @group_iterators[opts[:group]] = opts[:id].to_i - 1
+            group_iterators_file(opts[:group]) do |f|
+              f.write("#{@group_iterators[opts[:group]]}\n")
+            end
+          end
+        else
+          Thread.exclusive do
+            @iterator = opts[:id].to_i - 1
+            @iterator_file.write("#{@iterator}\n")
+          end
+        end
+      end
+    end
+    
     private
     
     def group_iterators_file group

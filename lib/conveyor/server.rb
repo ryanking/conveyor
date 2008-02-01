@@ -78,17 +78,25 @@ module Conveyor
           end
         elsif request.post? && m = request.path_match(%r{/channels/(.*)})
           if @channels.key?(m.captures[0])
-            if request.params.include?('HTTP_DATE') && d = Time.parse(request.params['HTTP_DATE'])
-              id = @channels[m.captures[0]].post(request.body.read)
-              response.start(202) do |head, out|
-                head["Location"] = "/channels/#{m.captures[0]}/#{id}"
+            params = Mongrel::HttpRequest.query_parse(request.params['QUERY_STRING'])
+            if params.include?('rewind_id')
+              @channels[m.captures[0]].rewind(:id => params['rewind_id']).to_i # TODO make sure this is an integer
+              response.start(200) do |head, out|
+                out.write "iterator rewound to #{params['rewind_id']}"
               end
-              i "#{request.params["REMOTE_ADDR"]} GET #{request.params["REQUEST_PATH"]} 202"
             else
-              response.start(400) do |head, out|
-                out.write "A valid Date header is required for all POSTs."
+              if request.params.include?('HTTP_DATE') && d = Time.parse(request.params['HTTP_DATE'])
+                id = @channels[m.captures[0]].post(request.body.read)
+                response.start(202) do |head, out|
+                  head["Location"] = "/channels/#{m.captures[0]}/#{id}"
+                end
+                i "#{request.params["REMOTE_ADDR"]} GET #{request.params["REQUEST_PATH"]} 202"
+              else
+                response.start(400) do |head, out|
+                  out.write "A valid Date header is required for all POSTs."
+                end
+                i "#{request.params["REMOTE_ADDR"]} GET #{request.params["REQUEST_PATH"]} 400"
               end
-              i "#{request.params["REMOTE_ADDR"]} GET #{request.params["REQUEST_PATH"]} 400"
             end
           end
 

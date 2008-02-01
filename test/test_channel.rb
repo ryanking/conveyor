@@ -144,4 +144,34 @@ class TestConveyorChannel < Test::Unit::TestCase
     
     assert_equal(status, c.status)
   end
+
+  def test_rewind
+    FileUtils.rm_r('/tmp/bar') rescue nil
+    c = Channel.new('/tmp/bar')
+    c.post 'foo'
+
+    assert_equal 'foo', c.get_next[1]
+    c.rewind(:id => 1)
+    assert_equal 'foo', c.get_next[1]
+    c.rewind(:id => 1)
+
+    d = Channel.new('/tmp/bar')
+    assert_equal 'foo', d.get_next[1]
+  end
+  
+  def test_group_rewind
+    FileUtils.rm_r('/tmp/bar') rescue nil
+    c = Channel.new('/tmp/bar')
+    c.post 'foo'
+    
+    assert_equal 'foo', c.get_next_by_group('bar')[1]
+    c.rewind(:id => 1, :group => 'bar')
+    assert_equal 'foo', c.get_next_by_group('bar')[1]
+    c.rewind(:id => 1, :group => 'bar')
+
+    d = Channel.new('/tmp/bar')
+    assert_equal 'foo', d.get_next_by_group('bar')[1]
+  end
+  
+  
 end

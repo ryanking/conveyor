@@ -16,7 +16,7 @@ module Conveyor
       @directory               = directory
       @data_files              = []
       @index = []
-      @iterator = 0
+      @iterator = 1
 
       if File.exists?(@directory)
         if !File.directory?(@directory)
@@ -45,7 +45,7 @@ module Conveyor
     end
     
     def inspect
-      "<#{self.class} dir:'#{@directory.to_s}' last_id:#{@last_id}>"
+      "<#{self.class} dir:'#{@directory.to_s}' last_id:#{@last_id} iterator:#{@iterator}>"
     end
     
     def pick_bucket i

@@ -29,7 +29,7 @@ module Conveyor
       Dir.glob(File.join(@directory, 'iterator-*')) do |i|
         g = i.split(%r{/}).last.match(%r{iterator-(.*)}).captures[0]
         @group_iterators_files[g] = File.open(i, 'r+')
-        @group_iterators[g] = 0
+        @group_iterators[g] = 1
         @group_iterators_files[g].each_line do |line|
           @group_iterators[g] = line.to_i
         end
@@ -46,9 +46,9 @@ module Conveyor
     def get_next
       r = nil
       Thread.exclusive do
-        if @iterator < @last_id
-          @iterator += 1
+        if @iterator <= @last_id
           r = get(@iterator)
+          @iterator += 1
           @iterator_file.write("#{@iterator}\n")
           r
         else
@@ -61,9 +61,9 @@ module Conveyor
     def get_next_by_group group
       r = nil
       Thread.exclusive do
-        @group_iterators[group] = 0 unless @group_iterators.key?(group)
-        @group_iterators[group] += 1
+        @group_iterators[group] = 1 unless @group_iterators.key?(group)
         r = get(@group_iterators[group])
+        @group_iterators[group] += 1
         group_iterators_file(group) do |f|
           f.write("#{@group_iterators[group]}\n")
         end
@@ -88,14 +88,14 @@ module Conveyor
       if opts.key?(:id)
         if opts.key?(:group)
           Thread.exclusive do
-            @group_iterators[opts[:group]] = opts[:id].to_i - 1
+            @group_iterators[opts[:group]] = opts[:id].to_i
             group_iterators_file(opts[:group]) do |f|
               f.write("#{@group_iterators[opts[:group]]}\n")
             end
           end
         else
           Thread.exclusive do
-            @iterator = opts[:id].to_i - 1
+            @iterator = opts[:id].to_i
             @iterator_file.write("#{@iterator}\n")
           end
         end

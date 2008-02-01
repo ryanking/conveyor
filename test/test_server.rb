@@ -111,7 +111,7 @@ class TestConveyorServer < Test::Unit::TestCase
         "index"=>{"size"=>1},
         "directory"=>"/tmp/asdf/bar",
         "data_files"=>[{"path"=>"/tmp/asdf/bar/0","bytes"=>139}],
-        "iterator"=>{"position"=>0}
+        "iterator"=>{"position"=>1}
       }
       assert_equal json, JSON::parse(req.body)
       

@@ -9,6 +9,7 @@ docs/protocol.mkd
 lib/conveyor.rb
 lib/conveyor/base_channel.rb
 lib/conveyor/channel.rb
+lib/conveyor/client.rb
 lib/conveyor/server.rb
 lib/priority_queue.rb
 test/rand.rb

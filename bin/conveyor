@@ -1,8 +1,10 @@
 #!/usr/bin/env ruby -KU
 
 require 'optparse'
+require 'rubygems'
+require 'daemons/daemonize'
 
-options = {:port => 8011}
+options = {:port => 8011, :daemonize => false}
 opts = OptionParser.new do |opts|
   opts.summary_indent = " "
   opts.banner = "usage: #{$0} [options] <data directory>"
@@ -17,10 +19,13 @@ opts = OptionParser.new do |opts|
     options[:log_directory] = log_dir
   end
   
+  opts.on("-d", "Daemonize.") do |d|
+    options[:daemonize] = d
+  end
 end
 
 opts.parse!
-
+p options
 unless ARGV.length == 1
   puts opts.help
   exit
@@ -29,4 +34,9 @@ end
 $: << 'lib'
 
 require 'conveyor/server'
+
+if options[:daemonize]
+  Daemonize.daemonize
+end
+
 Conveyor::Server.new('0.0.0.0', options[:port], ARGV[0], options[:log_directory]).run.join

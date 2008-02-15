@@ -11,6 +11,7 @@ Hoe.new('conveyor', Conveyor::VERSION) do |p|
   p.remote_rdoc_dir = ''
   p.extra_deps << ['mongrel']
   p.extra_deps << ['json']
+  p.extra_deps << ['daemons']
 end
 
 # vim: syntax=Ruby

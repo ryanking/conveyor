@@ -1,4 +1,4 @@
 module Conveyor
-  VERSION = '0.1.2'
+  VERSION = '0.1.3'
   QUALITY = 'alpha'
 end

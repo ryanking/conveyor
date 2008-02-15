@@ -173,5 +173,11 @@ class TestConveyorChannel < Test::Unit::TestCase
     assert_equal 'foo', d.get_next_by_group('bar')[1]
   end
   
-  
+  def test_valid_name
+    assert BaseChannel.valid_channel_name?(('a'..'z').to_a.join)
+    assert BaseChannel.valid_channel_name?(('A'..'Z').to_a.join)
+    assert BaseChannel.valid_channel_name?(('0'..'9').to_a.join)
+    assert BaseChannel.valid_channel_name?('-')
+    assert BaseChannel.valid_channel_name?('_')
+  end
 end

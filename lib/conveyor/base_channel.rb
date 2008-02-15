@@ -9,7 +9,7 @@ module Conveyor
   # Base implementation for channels. Not useful to instantiate directly.
   class BaseChannel
 
-    NAME_PATTERN = %r{\A[a-zA-Z\-0-9]+\Z}
+    NAME_PATTERN = %r{\A[a-zA-Z\-0-9\_]+\Z}
     BUCKET_SIZE = 100_000
 
     def initialize directory

@@ -31,5 +31,9 @@ module Conveyor
         @conn.get("/channels/#{channel_name}?next").body
       end
     end
+
+    def channel_status channel_name
+      JSON::parse(@conn.get("/channels/#{channel_name}").body)
+    end
   end
 end

@@ -1,6 +1,7 @@
 require "test/unit"
 require "conveyor/server"
 require 'net/http'
+require 'conveyor/client'
 
 class TestConveyorServer < Test::Unit::TestCase
   def setup
@@ -152,4 +153,42 @@ class TestConveyorServer < Test::Unit::TestCase
       assert_kind_of Net::HTTPNotFound, req
     end
   end
+
+  def test_get_next_by_group
+    c = Conveyor::Client.new 'localhost'
+    chan = 'asdf'
+    c.create_channel chan
+    c.post chan, 'foo'
+    c.post chan, 'bar'
+    c.post chan, 'bam'
+
+    group = 'bam'
+
+    assert_equal 'foo', c.get_next(chan, group)
+    assert_equal 'bar', c.get_next(chan, group)
+    assert_equal 'bam', c.get_next(chan, group)
+    assert_equal '',   c.get_next(chan, group)
+
+    group = 'bar'
+    assert_equal 'foo', c.get_next(chan, group)
+    assert_equal 'bar', c.get_next(chan, group)
+    assert_equal 'bam', c.get_next(chan, group)
+    assert_equal '',    c.get_next(chan, group)
+  end
+
+
+  # def test_group_rewind
+  #   FileUtils.rm_r('/tmp/bar') rescue nil
+  #   c = Channel.new('/tmp/bar')
+  #   c.post 'foo'
+  #   
+  #   assert_equal 'foo', c.get_next_by_group('bar')[1]
+  #   c.rewind(:id => 1, :group => 'bar')
+  #   assert_equal 'foo', c.get_next_by_group('bar')[1]
+  #   c.rewind(:id => 1, :group => 'bar')
+  # 
+  #   d = Channel.new('/tmp/bar')
+  #   assert_equal 'foo', d.get_next_by_group('bar')[1]
+  # end
+  
 end

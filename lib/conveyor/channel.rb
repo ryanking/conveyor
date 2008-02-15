@@ -79,7 +79,7 @@ module Conveyor
         },
         :data_files => @data_files.collect{|f| {:path => f.path, :bytes => File.size(f.path)}},
         :iterator => {:position => @iterator},
-        :iterator_groups => @group_iterators.inject({}){|k,v, m| m[k] = v; m}
+        :iterator_groups => @group_iterators.inject({}){|m,(k,v)| m[k] = v; m}
       }
     end
 

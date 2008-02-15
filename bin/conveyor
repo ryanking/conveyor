@@ -39,4 +39,10 @@ if options[:daemonize]
   Daemonize.daemonize
 end
 
-Conveyor::Server.new('0.0.0.0', options[:port], ARGV[0], options[:log_directory]).run.join
+server = Conveyor::Server.new('0.0.0.0', options[:port], ARGV[0], options[:log_directory])
+
+Signal.trap 'INT' do
+  server.stop
+end
+
+server.run.join

@@ -44,5 +44,12 @@ module Conveyor
       end
     end
     
+    def rewind channel_name, id, group=nil
+      if group
+        @conn.post("/channels/#{channel_name}?rewind_id=#{id}&group=#{group}", nil)
+      else
+        @conn.post("/channels/#{channel_name}?rewind_id=#{id}", nil)
+      end
+    end
   end
 end

@@ -155,6 +155,19 @@ class TestConveyorServer < Test::Unit::TestCase
     end
   end
 
+  def test_group_rewind
+    chan = 'test_group_rewind'
+    c = Client.new 'localhost'
+    c.create_channel chan
+    c.post chan, 'foo'
+    
+    assert_equal 'foo', c.get_next(chan, 'bar')
+    c.rewind(chan, 1, 'bar')
+    assert_equal 'foo', c.get_next(chan, 'bar')
+    c.rewind(chan, 1, 'bar')
+  end
+
+
   def test_get_next_by_group
     c = Conveyor::Client.new 'localhost'
     chan = 'asdf'
@@ -177,21 +190,6 @@ class TestConveyorServer < Test::Unit::TestCase
     assert_equal '',    c.get_next(chan, group)
   end
 
-#TODO
-  # def test_group_rewind
-  #   FileUtils.rm_r('/tmp/bar') rescue nil
-  #   c = Channel.new('/tmp/bar')
-  #   c.post 'foo'
-  #   
-  #   assert_equal 'foo', c.get_next_by_group('bar')[1]
-  #   c.rewind(:id => 1, :group => 'bar')
-  #   assert_equal 'foo', c.get_next_by_group('bar')[1]
-  #   c.rewind(:id => 1, :group => 'bar')
-  # 
-  #   d = Channel.new('/tmp/bar')
-  #   assert_equal 'foo', d.get_next_by_group('bar')[1]
-  # end
-  
   def test_get_next_n
     chan = 'test_get_next_n'
     c = Client.new 'localhost'

@@ -80,9 +80,16 @@ module Conveyor
           if @channels.key?(m.captures[0])
             params = Mongrel::HttpRequest.query_parse(request.params['QUERY_STRING'])
             if params.key?('rewind_id')
-              @channels[m.captures[0]].rewind(:id => params['rewind_id']).to_i # TODO make sure this is an integer
-              response.start(200) do |head, out|
-                out.write "iterator rewound to #{params['rewind_id']}"
+              if params['group']
+                @channels[m.captures[0]].rewind(:id => params['rewind_id'], :group => params['group']).to_i # TODO make sure this is an integer
+                response.start(200) do |head, out|
+                  out.write "iterator rewound to #{params['rewind_id']}"
+                end
+              else
+                @channels[m.captures[0]].rewind(:id => params['rewind_id']).to_i # TODO make sure this is an integer
+                response.start(200) do |head, out|
+                  out.write "iterator rewound to #{params['rewind_id']}"
+                end
               end
             else
               if request.params.include?('HTTP_DATE') && d = Time.parse(request.params['HTTP_DATE'])

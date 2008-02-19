@@ -69,3 +69,21 @@ Request
 
 Response
 :success: 200
+
+### Get next n ###
+
+Request
+: GET /channels/{channel name}?next&n={n}
+
+Response
+: JSON array of objects, which have the keys 'id', 'hash' and 'data'
+
+
+### Get next n for group ###
+
+Request
+: GET /channels/{channel name}?next&n={n}&group={group}
+
+Response
+: JSON array of objects, which have the keys 'id', 'hash' and 'data'
+

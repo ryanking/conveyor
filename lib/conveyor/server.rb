@@ -68,7 +68,7 @@ module Conveyor
               response.start(202) do |head, out|
                 out.write("channel already exists. didn't do anything")
               end
-              i "#{request.params["REMOTE_ADDR"]} PUT #{request.params["REQUEST_PATH"]} 202"
+              i "#{request.params["REMOTE_ADDR"]} PUT #{request.params["REQUEST_PATH"]}   "
             end
           else
             response.start(406) do |head, out|
@@ -79,7 +79,7 @@ module Conveyor
         elsif request.post? && m = request.path_match(%r{/channels/(.*)})
           if @channels.key?(m.captures[0])
             params = Mongrel::HttpRequest.query_parse(request.params['QUERY_STRING'])
-            if params.include?('rewind_id')
+            if params.key?('rewind_id')
               @channels[m.captures[0]].rewind(:id => params['rewind_id']).to_i # TODO make sure this is an integer
               response.start(200) do |head, out|
                 out.write "iterator rewound to #{params['rewind_id']}"
@@ -90,12 +90,12 @@ module Conveyor
                 response.start(202) do |head, out|
                   head["Location"] = "/channels/#{m.captures[0]}/#{id}"
                 end
-                i "#{request.params["REMOTE_ADDR"]} GET #{request.params["REQUEST_PATH"]} 202"
+                i "#{request.params["REMOTE_ADDR"]} POST #{request.params["REQUEST_PATH"]} 202"
               else
                 response.start(400) do |head, out|
                   out.write "A valid Date header is required for all POSTs."
                 end
-                i "#{request.params["REMOTE_ADDR"]} GET #{request.params["REQUEST_PATH"]} 400"
+                i "#{request.params["REMOTE_ADDR"]} POST #{request.params["REQUEST_PATH"]} 400"
               end
             end
           end
@@ -111,9 +111,20 @@ module Conveyor
               params = Mongrel::HttpRequest.query_parse(request.params['QUERY_STRING'])
               if params.key? 'next'
                 if params.key? 'group'
-                  headers, content = @channels[m.captures[0]].get_next_by_group(params['group'])
+                  if params.key? 'n'
+                    list = @channels[m.captures[0]].get_next_n_by_group(params['n'].to_i, params['group'])
+                  else
+                    headers, content = @channels[m.captures[0]].get_next_by_group(params['group'])
+                  end
                 else
-                  headers, content = @channels[m.captures[0]].get_next
+                  if params.key? 'n'
+                    list = @channels[m.captures[0]].get_next_n(params['n'].to_i)
+                    list = list.map do |i|
+                      {:data => i[1], :hash => i[0][:hash], :id => i[0][:id]}
+                    end
+                  else
+                    headers, content = @channels[m.captures[0]].get_next
+                  end
                 end
               else
                 response.start(200) do |head, out|
@@ -136,6 +147,10 @@ module Conveyor
               out.write content
             end
             i "#{request.params["REMOTE_ADDR"]} GET #{request.params["REQUEST_PATH"]} 200 #{headers[:id]} #{headers[:length]} #{headers[:hash]}"
+          elsif list
+            response.start(200) do |head, out|
+              out.write list.to_json
+            end
           end
           
         end

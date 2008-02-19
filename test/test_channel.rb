@@ -180,4 +180,62 @@ class TestConveyorChannel < Test::Unit::TestCase
     assert BaseChannel.valid_channel_name?('-')
     assert BaseChannel.valid_channel_name?('_')
   end
+
+  def test_get_next_n
+    FileUtils.rm_r '/tmp/asdfasdf' rescue nil
+    c = Conveyor::Channel.new '/tmp/asdfasdf'
+    100.times {|i| c.post i.to_s}
+
+    12.times do |j|
+      r = c.get_next_n 10
+      r.each_with_index do |f, i|
+        assert_equal Digest::MD5.hexdigest((j*10 + i).to_s), f[0][:hash]
+        assert_equal((j*10 + i).to_s.length,                 f[0][:length])
+        assert_equal((j*10 + i)+1,                           f[0][:id])
+        assert_equal((j*10 + i).to_s,                        f[1])
+      end
+    end
+    
+    100.times {|i| c.post i.to_s}
+
+    12.times do |j|
+      r = c.get_next_n 10
+      r.each_with_index do |f, i|
+        assert_equal Digest::MD5.hexdigest((j*10 + i).to_s), f[0][:hash]
+        assert_equal((j*10 + i).to_s.length,                 f[0][:length])
+        assert_equal((100 + j*10 + i)+1,                     f[0][:id])
+        assert_equal((j*10 + i).to_s,                        f[1])
+      end
+    end
+  end
+
+  def test_get_next_n_by_group
+    FileUtils.rm_r '/tmp/asdfasdf'
+    c = Conveyor::Channel.new '/tmp/asdfasdf'
+    100.times {|i| c.post i.to_s}
+
+    10.times do |j|
+      r = c.get_next_n_by_group 10, 'foo'
+      r.each_with_index do |f, i|
+        assert_equal Digest::MD5.hexdigest((j*10 + i).to_s), f[0][:hash]
+        assert_equal((j*10 + i).to_s.length,                 f[0][:length])
+        assert_equal((j*10 + i)+1,                           f[0][:id])
+        assert_equal((j*10 + i).to_s,                        f[1])
+      end
+    end
+
+    assert_equal [], c.get_next_n_by_group(10, 'foo')
+
+    10.times do |j|
+      r = c.get_next_n_by_group 10, 'bar'
+      r.each_with_index do |f, i|
+        assert_equal Digest::MD5.hexdigest((j*10 + i).to_s), f[0][:hash]
+        assert_equal((j*10 + i).to_s.length,                 f[0][:length])
+        assert_equal((j*10 + i)+1,                           f[0][:id])
+        assert_equal((j*10 + i).to_s,                        f[1])
+      end
+    end
+    assert_equal [], c.get_next_n_by_group(10, 'bar')
+  end
+  
 end

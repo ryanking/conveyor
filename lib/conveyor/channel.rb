@@ -62,10 +62,42 @@ module Conveyor
       r = nil
       Thread.exclusive do
         @group_iterators[group] = 1 unless @group_iterators.key?(group)
-        r = get(@group_iterators[group])
-        @group_iterators[group] += 1
-        group_iterators_file(group) do |f|
-          f.write("#{@group_iterators[group]}\n")
+        if @iterator <= @last_id
+          r = get(@group_iterators[group])
+          @group_iterators[group] += 1
+          group_iterators_file(group) do |f|
+            f.write("#{@group_iterators[group]}\n")
+          end
+        else
+          nil
+        end
+      end
+      r
+    end
+
+    def get_next_n n
+      r = []
+      Thread.exclusive do
+        while r.length < n && @iterator <= @last_id
+          r << get(@iterator)
+          @iterator += 1
+          @iterator_file.write("#{@iterator}\n")
+          r
+        end
+      end
+      r
+    end
+    
+    def get_next_n_by_group n, group
+      r = []
+      Thread.exclusive do
+        @group_iterators[group] = 1 unless @group_iterators.key?(group)
+        while r.length < n && @group_iterators[group] < @last_id
+          r << get(@group_iterators[group])
+          @group_iterators[group] += 1
+          group_iterators_file(group) do |f|
+            f.write("#{@group_iterators[group]}\n")
+          end
         end
       end
       r

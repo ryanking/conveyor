@@ -4,6 +4,7 @@ require 'net/http'
 require 'conveyor/client'
 
 class TestConveyorServer < Test::Unit::TestCase
+  include Conveyor
   def setup
     FileUtils.rm_r('/tmp/asdf') rescue nil
     FileUtils.mkdir('/tmp/asdf')
@@ -176,7 +177,7 @@ class TestConveyorServer < Test::Unit::TestCase
     assert_equal '',    c.get_next(chan, group)
   end
 
-
+#TODO
   # def test_group_rewind
   #   FileUtils.rm_r('/tmp/bar') rescue nil
   #   c = Channel.new('/tmp/bar')
@@ -191,4 +192,60 @@ class TestConveyorServer < Test::Unit::TestCase
   #   assert_equal 'foo', d.get_next_by_group('bar')[1]
   # end
   
+  def test_get_next_n
+    chan = 'test_get_next_n'
+    c = Client.new 'localhost'
+    c.create_channel chan
+    100.times {|i| c.post chan, i.to_s}
+
+    10.times do |j|
+      r = c.get_next_n chan, 10
+      r.each_with_index do |f, i|
+        assert_equal((j*10 + i)+1,                           f["id"])
+        assert_equal(Digest::MD5.hexdigest((j*10 + i).to_s), f["hash"])
+        assert_equal((j*10 + i).to_s,                        f["data"])
+      end
+    end
+    
+    100.times {|i| c.post chan, i.to_s}
+
+    10.times do |j|
+      r = c.get_next_n chan, 10
+      r.each_with_index do |f, i|
+        assert_equal(Digest::MD5.hexdigest((j*10 + i).to_s), f["hash"])
+        assert_equal((100 + j*10 + i)+1,                     f["id"])
+        assert_equal((j*10 + i).to_s,                        f["data"])
+      end
+    end
+  end
+
+  def test_get_next_n_by_group
+    chan = 'test_get_next_n_by_group'
+    c = Client.new 'localhost'
+    c.create_channel chan
+    100.times {|i| c.post chan, i.to_s}
+
+    10.times do |j|
+      r = c.get_next_n chan, 10, 'foo'
+      r.each_with_index do |f, i|
+        assert_equal(Digest::MD5.hexdigest((j*10 + i).to_s), f[0]["hash"])
+        assert_equal((j*10 + i).to_s.length,                 f[0]["length"])
+        assert_equal((j*10 + i)+1,                           f[0]["id"])
+        assert_equal((j*10 + i).to_s,                        f[1])
+      end
+    end
+
+    assert_equal [], c.get_next_n(chan, 10, 'foo')
+
+    10.times do |j|
+      r = c.get_next_n chan, 10, 'bar'
+      r.each_with_index do |f, i|
+        assert_equal Digest::MD5.hexdigest((j*10 + i).to_s), f[0]["hash"]
+        assert_equal((j*10 + i).to_s.length,                 f[0]["length"])
+        assert_equal((j*10 + i)+1,                           f[0]["id"])
+        assert_equal((j*10 + i).to_s,                        f[1])
+      end
+    end
+    assert_equal [], c.get_next_n(chan, 10, 'bar')
+  end
 end

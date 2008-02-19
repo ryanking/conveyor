@@ -9,7 +9,7 @@ class TestPriorityQueue < Test::Unit::TestCase
 
     pq << 1 << 2 << -1
 
-    assert_equal -1, pq.pop
+    assert_equal(-1, pq.pop)
     assert_equal 1, pq.pop
     assert_equal 2, pq.pop
   end

@@ -35,5 +35,14 @@ module Conveyor
     def channel_status channel_name
       JSON::parse(@conn.get("/channels/#{channel_name}").body)
     end
+
+    def get_next_n channel_name, n = 10, group = nil
+      if group
+        JSON.parse(@conn.get("/channels/#{channel_name}?next&n=#{n}&group=#{group}").body)
+      else
+        JSON.parse(@conn.get("/channels/#{channel_name}?next&n=#{n}").body)
+      end
+    end
+    
   end
 end

@@ -1,0 +1,13 @@
+Release procedure
+=================
+
+* use hg tag to find the last release tag
+* do a log from last release to tip
+* use that info to write History.txt entry
+* update version number
+* check/update manifest
+* commit manifest, history and version number
+* tag
+* release
+* post_news
+* post_docs

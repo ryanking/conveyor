@@ -133,9 +133,9 @@ module Conveyor
         end
       end
     end
-    
+
     private
-    
+
     def group_iterators_file group
       unless @group_iterators_files[group]
         @group_iterators_files[group] = File.open(File.join(@directory, 'iterator-' + group), 'a+')
@@ -143,6 +143,5 @@ module Conveyor
       end
       yield @group_iterators_files[group]
     end
-    
   end
 end

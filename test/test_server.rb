@@ -116,7 +116,7 @@ class TestConveyorServer < Test::Unit::TestCase
         "iterator_groups" => {},
         "index"=>{"size"=>1},
         "directory"=>"/tmp/asdf/#{chan}",
-        "data_files"=>[{"path"=>"/tmp/asdf/#{chan}/0","bytes"=>139}],
+        "data_files"=>[{"path"=>"/tmp/asdf/#{chan}/0","bytes"=>159}],
         "iterator"=>{"position"=>1}
       }
       assert_equal json, JSON::parse(req.body)
@@ -231,7 +231,6 @@ class TestConveyorServer < Test::Unit::TestCase
       r = c.get_next_n chan, 10, 'foo'
       r.each_with_index do |f, i|
         assert_equal(Digest::MD5.hexdigest((j*10 + i).to_s), f[0]["hash"])
-        assert_equal((j*10 + i).to_s.length,                 f[0]["length"])
         assert_equal((j*10 + i)+1,                           f[0]["id"])
         assert_equal((j*10 + i).to_s,                        f[1])
       end
@@ -243,7 +242,6 @@ class TestConveyorServer < Test::Unit::TestCase
       r = c.get_next_n chan, 10, 'bar'
       r.each_with_index do |f, i|
         assert_equal Digest::MD5.hexdigest((j*10 + i).to_s), f[0]["hash"]
-        assert_equal((j*10 + i).to_s.length,                 f[0]["length"])
         assert_equal((j*10 + i)+1,                           f[0]["id"])
         assert_equal((j*10 + i).to_s,                        f[1])
       end

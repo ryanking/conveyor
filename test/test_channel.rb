@@ -133,10 +133,10 @@ class TestConveyorChannel < Test::Unit::TestCase
     c.post 'bam'
     
     status = {
-      :directory => '/tmp/bar', 
+      :directory => '/tmp/bar',
       :index => {:size => 3},
       :data_files => [
-        {:path => '/tmp/bar/0', :bytes => 210}
+        {:path => '/tmp/bar/0', :bytes => 273}
         ],
       :iterator => {:position => 1},
       :iterator_groups => {}
@@ -190,7 +190,6 @@ class TestConveyorChannel < Test::Unit::TestCase
       r = c.get_next_n 10
       r.each_with_index do |f, i|
         assert_equal Digest::MD5.hexdigest((j*10 + i).to_s), f[0][:hash]
-        assert_equal((j*10 + i).to_s.length,                 f[0][:length])
         assert_equal((j*10 + i)+1,                           f[0][:id])
         assert_equal((j*10 + i).to_s,                        f[1])
       end
@@ -202,7 +201,6 @@ class TestConveyorChannel < Test::Unit::TestCase
       r = c.get_next_n 10
       r.each_with_index do |f, i|
         assert_equal Digest::MD5.hexdigest((j*10 + i).to_s), f[0][:hash]
-        assert_equal((j*10 + i).to_s.length,                 f[0][:length])
         assert_equal((100 + j*10 + i)+1,                     f[0][:id])
         assert_equal((j*10 + i).to_s,                        f[1])
       end
@@ -218,7 +216,6 @@ class TestConveyorChannel < Test::Unit::TestCase
       r = c.get_next_n_by_group 10, 'foo'
       r.each_with_index do |f, i|
         assert_equal Digest::MD5.hexdigest((j*10 + i).to_s), f[0][:hash]
-        assert_equal((j*10 + i).to_s.length,                 f[0][:length])
         assert_equal((j*10 + i)+1,                           f[0][:id])
         assert_equal((j*10 + i).to_s,                        f[1])
       end
@@ -230,7 +227,6 @@ class TestConveyorChannel < Test::Unit::TestCase
       r = c.get_next_n_by_group 10, 'bar'
       r.each_with_index do |f, i|
         assert_equal Digest::MD5.hexdigest((j*10 + i).to_s), f[0][:hash]
-        assert_equal((j*10 + i).to_s.length,                 f[0][:length])
         assert_equal((j*10 + i)+1,                           f[0][:id])
         assert_equal((j*10 + i).to_s,                        f[1])
       end

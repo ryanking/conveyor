@@ -22,6 +22,8 @@ class TestReplicatedChannel < Test::Unit::TestCase
     c1.commit_thread.run
     c2.commit_thread.run
 
+    sleep 1
+
     assert_equal 'foo', c1.get(1)[1]
     assert_equal 'foo', c2.get(1)[1]
 
@@ -49,12 +51,16 @@ class TestReplicatedChannel < Test::Unit::TestCase
       channels[i % 2].post(d, Time.now)
     end
 
+    c1.ping_thread.run
+    c2.ping_thread.run
     c1.commit_thread.run
     c2.commit_thread.run
 
-    c1d = (1..10).collect{|i| c1.get(i)}
-    c2d = (1..10).collect{|i| c2.get(i)}
+    sleep 1
 
-    assert_equal c1d, c2d
+    c1d = (1..10).collect{|i| c1.get(i)[1]}
+    c2d = (1..10).collect{|i| c2.get(i)[1]}
+    assert_equal data, c1d
+    assert_equal data, c2d
   end
 end

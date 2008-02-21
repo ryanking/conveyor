@@ -2,6 +2,8 @@ require 'digest/md5'
 require 'rubygems'
 require 'time'
 require 'priority_queue'
+require 'stringio'
+require 'zlib'
 
 module Conveyor
   # BaseChannel
@@ -13,10 +15,12 @@ module Conveyor
     BUCKET_SIZE = 100_000
 
     def initialize directory
-      @directory               = directory
-      @data_files              = []
-      @index = []
-      @iterator = 1
+      @directory    = directory
+      @data_files   = []
+      @file_mutexes = []
+      @index        = []
+      @iterator     = 1
+      @id_lock      = Mutex.new
 
       if File.exists?(@directory)
         if !File.directory?(@directory)
@@ -56,23 +60,42 @@ module Conveyor
       unless @data_files[i]
         @data_files[i] = File.open(File.join(@directory, i.to_s), 'a+')
         @data_files[i].sync = true
+        @file_mutexes[i] = Mutex.new
       end
-      yield @data_files[i]
+      @file_mutexes[i].synchronize do
+        yield @data_files[i]
+      end
+    end
+
+    def id_lock
+      @id_lock.synchronize do
+        yield
+      end
     end
 
     def commit data, time = nil
-      Thread.exclusive do
+      compressed_data = StringIO.new
+      g = Zlib::GzipWriter.new(compressed_data)
+
+      g << data
+      g.finish
+      compressed_data.rewind
+      compressed_data = compressed_data.read
+      h = Digest::MD5.hexdigest(data)
+      l = compressed_data.length
+
+      id_lock do
         i = @last_id + 1
         t = time || Time.now
-        l = data.length
-        h = Digest::MD5.hexdigest(data)
         b = pick_bucket(i)
         header, o = nil
         bucket_file(b) do |f|
           f.seek(0, IO::SEEK_END)
           o = f.pos
           header = "#{i} #{t.xmlschema} #{o} #{l} #{h}"
-          f.write("#{header}\n" + data + "\n")
+          f.write("#{header}\n")
+          f.write(compressed_data)
+          f.write("\n")
         end
 
         @last_id = i
@@ -86,12 +109,13 @@ module Conveyor
       return nil unless id <= @last_id && id > 0
       i = @index.find{|e| e[:id] == id}
       header, content = nil
-      Thread.exclusive do
-        bucket_file(i[:file]) do |f|
-          f.seek i[:offset]
-          header  = f.readline.strip
-          content = f.read(i[:length])
-        end
+      bucket_file(i[:file]) do |f|
+        f.seek i[:offset]
+        header  = f.readline.strip
+        compressed_content = f.read(i[:length])
+        io = StringIO.new(compressed_content)
+        g = Zlib::GzipReader.new(io)
+        content = g.read
       end
       [parse_headers(header), content]
     end

@@ -17,7 +17,7 @@ module Conveyor
     end
 
     def post channel_name, content
-      @conn.post("/channels/#{channel_name}", content, {'Content-Type' => 'application/octet-stream', 'Date' => Time.now.to_s})
+      @conn.post("/channels/#{channel_name}", content, {'Content-Type' => 'application/octet-stream', 'Date' => Time.now.gmtime.to_s})
     end
     
     def get channel_name, id

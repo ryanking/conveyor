@@ -2,40 +2,44 @@ require "test/unit"
 require "conveyor/server"
 require 'net/http'
 require 'conveyor/client'
+require 'thin'
 
 class TestConveyorServer < Test::Unit::TestCase
   include Conveyor
-  def setup
-    FileUtils.rm_r('/tmp/asdf') rescue nil
-    FileUtils.mkdir('/tmp/asdf')
-    @server = Conveyor::Server.new("127.0.0.1", 8011, '/tmp/asdf')
-    @server.run
+
+  FileUtils.rm_r('/tmp/asdf') rescue nil
+  FileUtils.mkdir('/tmp/asdf')
+
+  Thread.start do
+    Thin::Server.start('0.0.0.0', 8011) do
+      map '/channels' do
+        run Conveyor::App.new('/tmp/asdf')
+      end
+    end
   end
-  
-  def teardown
-    @server.stop
-  end
-  
+
   def test_channels
     Net::HTTP.start("localhost", 8011) do |h|
       req = h.get('/channels')
       assert_equal Net::HTTPOK, req.class
     end
   end
-  
+
   def test_create_channel
+    chan = 'test_create_channel'
     Net::HTTP.start('localhost', 8011) do |h|
-      req = h.put('/channels/foo', '', {'Content-Type' => 'application/octet-stream'})
+      req = h.put("/channels/#{chan}", '', {'Content-Type' => 'application/octet-stream'})
       assert_equal Net::HTTPCreated, req.class
 
-      req = h.post('/channels/foo', 'foo', {'Content-Type' => 'application/octet-stream', 'Date' => Time.now.to_s})
+      req = h.post("/channels/#{chan}", 'foo', {'Content-Type' => 'application/octet-stream', 'Date' => Time.now.to_s})
       assert_equal Net::HTTPAccepted, req.class
     end
   end
-  
+
   def test_post
+    chan = 'test_post'
     Net::HTTP.start('localhost', 8011) do |h|
-      req = h.put('/channels/bar', '', {'Content-Type' => 'application/octet-stream'})
+      req = h.put("/channels/#{chan}", '', {'Content-Type' => 'application/octet-stream'})
       assert_equal Net::HTTPCreated, req.class
 
       data =
@@ -48,12 +52,12 @@ class TestConveyorServer < Test::Unit::TestCase
         "yY3vhjeq","2IDeF0ccG8tRZIZSekz6fUii29"]
         
       data.each do |d|
-        req = h.post('/channels/bar', d, {'Content-Type' => 'application/octet-stream', 'Date' => Time.now.to_s})
+        req = h.post("/channels/#{chan}", d, {'Content-Type' => 'application/octet-stream', 'Date' => Time.now.to_s})
         assert_equal Net::HTTPAccepted, req.class
       end
 
       data.each_with_index do |d, i|
-        req = h.get("/channels/bar/#{i+1}")
+        req = h.get("/channels/#{chan}/#{i+1}")
         assert_equal d, req.body
       end
     end
@@ -94,25 +98,25 @@ class TestConveyorServer < Test::Unit::TestCase
   end
 
   def test_status
+    chan = 'test_status'
     Net::HTTP.start('localhost', 8011) do |h|
-      req = h.put('/channels/bar', '', {'Content-Type' => 'application/octet-stream'})
+      req = h.put("/channels/#{chan}", '', {'Content-Type' => 'application/octet-stream'})
       assert_equal Net::HTTPCreated, req.class
 
-      data =
-      ["ZqZyDN2SouQCYEHYS0LuM1XeqsF0MKIbFEBE6xQ972VqEcjs21wJSosvZMWEH1lq5ukTq4Ze"]
-        
+      data = ["ZqZyDN2SouQCYEHYS0LuM1XeqsF0MKIbFEBE6xQ972VqEcjs21wJSosvZMWEH1lq5ukTq4Ze"]
+
       data.each do |d|
-        req = h.post('/channels/bar', d, {'Content-Type' => 'application/octet-stream', 'Date' => Time.now.to_s})
+        req = h.post("/channels/#{chan}", d, {'Content-Type' => 'application/octet-stream', 'Date' => Time.now.to_s})
         assert_equal Net::HTTPAccepted, req.class
       end
 
-      req = h.get("/channels/bar")
+      req = h.get("/channels/#{chan}")
       assert_kind_of Net::HTTPOK, req
       json = {
         "iterator_groups" => {},
         "index"=>{"size"=>1},
-        "directory"=>"/tmp/asdf/bar",
-        "data_files"=>[{"path"=>"/tmp/asdf/bar/0","bytes"=>139}],
+        "directory"=>"/tmp/asdf/#{chan}",
+        "data_files"=>[{"path"=>"/tmp/asdf/#{chan}/0","bytes"=>139}],
         "iterator"=>{"position"=>1}
       }
       assert_equal json, JSON::parse(req.body)
@@ -121,36 +125,37 @@ class TestConveyorServer < Test::Unit::TestCase
   end
 
   def test_rewinding
+    chan = 'test_rewinding'
     Net::HTTP.start('localhost', 8011) do |h|
-      req = h.put('/channels/bar', '', {'Content-Type' => 'application/octet-stream'})
+      req = h.put("/channels/#{chan}", '', {'Content-Type' => 'application/octet-stream'})
       assert_equal Net::HTTPCreated, req.class
 
       data =
       ["ZqZyDN2SouQCYEHYS0LuM1XeqsF0MKIbFEBE6xQ972VqEcjs21wJSosvZMWEH1lq5ukTq4Ze"]
         
       data.each do |d|
-        req = h.post('/channels/bar', d, {'Content-Type' => 'application/octet-stream', 'Date' => Time.now.to_s})
+        req = h.post("/channels/#{chan}", d, {'Content-Type' => 'application/octet-stream', 'Date' => Time.now.to_s})
         assert_equal Net::HTTPAccepted, req.class
       end
 
-      req = h.get('/channels/bar?next')
+      req = h.get("/channels/#{chan}?next")
 
       assert_kind_of Net::HTTPOK, req
       assert_equal data[0], req.body
-
-      req = h.get('/channels/bar?next')
-
+      
+      req = h.get("/channels/#{chan}?next")
+      
       assert_kind_of Net::HTTPNotFound, req
-
-      req = h.post('/channels/bar?rewind_id=1', nil)
+      
+      req = h.post("/channels/#{chan}?rewind_id=1", nil)
       assert_kind_of Net::HTTPOK, req
-
-      req = h.get('/channels/bar?next')
+      
+      req = h.get("/channels/#{chan}?next")
       
       assert_kind_of Net::HTTPOK, req
       assert_equal data[0], req.body
       
-      req = h.get('/channels/bar?next')
+      req = h.get("/channels/#{chan}?next")
       assert_kind_of Net::HTTPNotFound, req
     end
   end
@@ -167,10 +172,9 @@ class TestConveyorServer < Test::Unit::TestCase
     c.rewind(chan, 1, 'bar')
   end
 
-
   def test_get_next_by_group
     c = Conveyor::Client.new 'localhost'
-    chan = 'asdf'
+    chan = 'test_get_next_by_group'
     c.create_channel chan
     c.post chan, 'foo'
     c.post chan, 'bar'
@@ -247,3 +251,4 @@ class TestConveyorServer < Test::Unit::TestCase
     assert_equal [], c.get_next_n(chan, 10, 'bar')
   end
 end
+

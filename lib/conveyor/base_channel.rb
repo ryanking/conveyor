@@ -83,7 +83,7 @@ module Conveyor
     end
 
     def get id
-      return nil unless id <= @last_id
+      return nil unless id <= @last_id && id > 0
       i = @index.find{|e| e[:id] == id}
       header, content = nil
       Thread.exclusive do
@@ -102,13 +102,13 @@ module Conveyor
       pattern += '\Z'
       m = str.match(Regexp.new(pattern))
       {
-        :id => m.captures[0].to_i,
-        :time => m.captures[1],
+        :id     => m.captures[0].to_i,
+        :time   => m.captures[1],
         :offset => m.captures[2].to_i,
         :length => m.captures[3].to_i,
-        :hash => m.captures[4], 
-        :file => (index_file ? m.captures[5].to_i : nil)
-      }.reject {|k,v| v == nil}
+        :hash   => m.captures[4], 
+        :file   => (index_file ? m.captures[5].to_i : nil)
+      }
     end
 
     def self.valid_channel_name? name

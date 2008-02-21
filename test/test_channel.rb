@@ -24,7 +24,7 @@ class TestConveyorChannel < Test::Unit::TestCase
     i = Channel.new '/tmp/foo'
     [
       ["1 2008-01-08T13:04:40-08:00 0 3 acbd18db4cc2f85cedef654fccc4a4d8\n", 
-       {:id => 1, :time => "2008-01-08T13:04:40-08:00", :offset => 0, :length => 3, :hash => "acbd18db4cc2f85cedef654fccc4a4d8"}
+       {:id => 1, :time => "2008-01-08T13:04:40-08:00", :offset => 0, :length => 3, :hash => "acbd18db4cc2f85cedef654fccc4a4d8", :file => nil}
       ]
     ].each do |(str, ret)|
       assert_equal ret, i.parse_headers(str)

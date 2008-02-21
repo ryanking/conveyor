@@ -3,6 +3,7 @@
 require 'optparse'
 require 'rubygems'
 require 'daemons/daemonize'
+require 'thin'
 
 options = {:port => 8011, :daemonize => false}
 opts = OptionParser.new do |opts|
@@ -39,10 +40,9 @@ if options[:daemonize]
   Daemonize.daemonize
 end
 
-server = Conveyor::Server.new('0.0.0.0', options[:port], ARGV[0], options[:log_directory])
-
-Signal.trap 'INT' do
-  server.stop
+Thin::Server.start('0.0.0.0', options[:port]) do
+  map '/channels' do
+    run Conveyor::App.new(ARGV[0], options[:log_directory])
+  end
 end
 
-server.run.join

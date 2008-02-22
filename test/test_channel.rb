@@ -19,22 +19,22 @@ class TestConveyorChannel < Test::Unit::TestCase
       assert_equal 1, w.instance_variable_get(:@last_id)
     end
   end
-  
+
   def test_parse_headers
     FileUtils.rm_r '/tmp/foo' rescue nil
 
     i = Channel.new '/tmp/foo'
     [
-      ["1 2008-01-08T13:04:40-08:00 0 3 acbd18db4cc2f85cedef654fccc4a4d8\n", 
-       {:id => 1, :time => "2008-01-08T13:04:40-08:00", :offset => 0, :length => 3, :hash => "acbd18db4cc2f85cedef654fccc4a4d8", :file => nil}
+      ["1 1199826280 0 3 acbd18db4cc2f85cedef654fccc4a4d8\n", 
+       {:id => 1, :time => 1199826280, :offset => 0, :length => 3, :hash => "acbd18db4cc2f85cedef654fccc4a4d8", :file => nil}
       ]
     ].each do |(str, ret)|
       assert_equal ret, i.parse_headers(str)
     end
     
     [
-      ["2 2008-01-08T13:04:40-08:00 0 3 acbd18db4cc2f85cedef654fccc4a4d8 1\n", 
-       {:id => 2, :time => "2008-01-08T13:04:40-08:00", :offset => 0, :length => 3, :hash => "acbd18db4cc2f85cedef654fccc4a4d8", :file => 1}
+      ["2 1199826280 0 3 acbd18db4cc2f85cedef654fccc4a4d8 1\n", 
+       {:id => 2, :time => 1199826280, :offset => 0, :length => 3, :hash => "acbd18db4cc2f85cedef654fccc4a4d8", :file => 1}
       ]
     ].each do |(str, ret)|
       assert_equal ret, i.parse_headers(str, true)
@@ -140,7 +140,7 @@ class TestConveyorChannel < Test::Unit::TestCase
       :directory => '/tmp/bar',
       :index => {:size => 3},
       :data_files => [
-        {:path => '/tmp/bar/0', :bytes => 273}
+        {:path => '/tmp/bar/0', :bytes => 228}
         ],
       :iterator => {:position => 1},
       :iterator_groups => {}

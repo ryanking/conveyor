@@ -127,7 +127,7 @@ module Conveyor
             'Content-Location' => "/channels/#{m.captures[0]}/#{headers[:id]}",
             'Content-MD5'      => headers[:hash],
             'Content-Type'     => 'application/octet-stream',
-            'Last-Modified'    => Time.parse(headers[:time]).gmtime.to_s,
+            'Last-Modified'    => Time.at(headers[:time]).gmtime.to_s,
           },
             content
         ]

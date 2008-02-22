@@ -81,7 +81,7 @@ module Conveyor
         bucket_file(b) do |f|
           f.seek(0, IO::SEEK_END)
           o = f.pos
-          header = "#{i} #{t.xmlschema} #{o} #{l} #{h}"
+          header = "#{i} #{t.to_i} #{o} #{l} #{h}"
           f.write("#{header}\n")
           f.write(compressed_data)
           f.write("\n")
@@ -113,13 +113,13 @@ module Conveyor
     end
 
     def self.parse_headers str, index_file=false
-      pattern =  '\A(\d+) (\d{4}\-\d{2}\-\d{2}T\d{2}\:\d{2}\:\d{2}[+\-]\d{2}\:\d{2}) (\d+) (\d+) ([a-f0-9]+)'
+      pattern =  '\A(\d+) (\d+) (\d+) (\d+) ([a-f0-9]+)'
       pattern += ' (\d+)' if index_file
       pattern += '\Z'
       m = str.match(Regexp.new(pattern))
       {
         :id     => m.captures[0].to_i,
-        :time   => m.captures[1],
+        :time   => m.captures[1].to_i,
         :offset => m.captures[2].to_i,
         :length => m.captures[3].to_i,
         :hash   => m.captures[4], 

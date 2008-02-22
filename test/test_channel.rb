@@ -238,4 +238,17 @@ class TestConveyorChannel < Test::Unit::TestCase
     assert_equal [], c.get_next_n_by_group(10, 'bar')
   end
   
+  def test_delete
+    chan = 'test_delete'
+    FileUtils.rm_r "/tmp/#{chan}" rescue nil
+    c = Channel.new("/tmp/#{chan}")
+    10.times {|i| c.post i.to_s}
+    10.times {|i| assert_equal(i.to_s, c.get(i+1)[1])}
+    c.delete!
+    10.times {|i| assert_equal(nil, c.get(i+1))}
+
+    d = Channel.new("/tmp/#{chan}")
+    assert_equal nil, d.get(1)
+  end
+  
 end

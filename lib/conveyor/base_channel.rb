@@ -135,6 +135,12 @@ module Conveyor
       !!name.match(NAME_PATTERN)
     end
 
+    def delete!
+      FileUtils.rm_r(@directory)
+      @index = []
+      @data_files =[]
+      @last_id = 0
+    end
 
     protected
 

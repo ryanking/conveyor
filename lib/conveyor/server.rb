@@ -33,6 +33,10 @@ module Conveyor
       @channels[channel_name] = Conveyor::Channel.new(File.join(@data_directory, channel_name))
     end
 
+    def i msg
+      @logger.info msg
+    end
+
     def put env, m
       if Channel.valid_channel_name?(m.captures[0])
         if !@channels.key?(m.captures[0])
@@ -73,10 +77,6 @@ module Conveyor
       else
         [404, {}, '']
       end
-    end
-
-    def i msg
-      @logger.info msg
     end
 
     def get env
@@ -131,12 +131,22 @@ module Conveyor
       return [404, {}, '']
     end
 
+    def delete env, m
+      if @channels.key?(m.captures[0])
+        @channels[m.captures[0]].delete!
+        @channels.delete(m.captures[0])
+        [200, {}, "Channel deleted."]
+      end
+    end
+
     def call(env)
       @requests += 1
       if env['REQUEST_METHOD']    == 'PUT'  && m = path_match(env, %r{/channels/(.*)})
         put(env, m)
       elsif env['REQUEST_METHOD'] == 'POST' && m = path_match(env, %r{/channels/(.*)})
         post(env, m)
+      elsif env['REQUEST_METHOD'] == 'DELETE' && m = path_match(env, %r{/channels/(.*)})
+        delete(env, m)
       elsif env['REQUEST_METHOD'] == 'GET'
         get(env)
       else

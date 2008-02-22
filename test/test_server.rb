@@ -248,5 +248,25 @@ class TestConveyorServer < Test::Unit::TestCase
     end
     assert_equal [], c.get_next_n(chan, 10, 'bar')
   end
+
+  def test_delete
+    chan = "test_delete"
+    Net::HTTP.start("localhost", 8011) do |h|
+      r = h.put("/channels/#{chan}", "")
+      assert_kind_of Net::HTTPCreated, r
+      10.times {|i| h.post("/channels/#{chan}", i.to_s, {'Content-Type' => 'application/octet-stream', 'Date' => Time.now.gmtime.to_s})}
+      10.times {|i| assert_equal(i.to_s, h.get("/channels/#{chan}?next").body)}
+      10.times {|i| assert_equal(i.to_s, h.get("/channels/#{chan}/#{i+1}").body)}
+      r = h.delete("/channels/#{chan}")
+      assert_kind_of Net::HTTPOK, r
+      
+      r = h.put("/channels/#{chan}", "")
+      assert_kind_of Net::HTTPCreated, r
+      10.times {|i| h.post("/channels/#{chan}", i.to_s, {'Content-Type' => 'application/octet-stream', 'Date' => Time.now.gmtime.to_s})}
+      10.times {|i| assert_equal(i.to_s, h.get("/channels/#{chan}?next").body)}
+      10.times {|i| assert_equal(i.to_s, h.get("/channels/#{chan}/#{i+1}").body)}
+    end
+  end
+
 end
 

@@ -13,7 +13,7 @@ class TestConveyorServer < Test::Unit::TestCase
   Thread.start do
     Thin::Server.start('0.0.0.0', 8011) do
       map '/channels' do
-        run Conveyor::App.new('/tmp/asdf')
+        run Conveyor::App.new('/tmp/asdf',  :unsafe_mode => true)
       end
     end
   end

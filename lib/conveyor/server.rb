@@ -7,21 +7,25 @@ require 'logger'
 
 module Conveyor
   class App
-    def initialize(data_directory, log_directory = nil)
+    def initialize(data_directory, *options)
+      options = options.inject(){|(k, v), m| m[k] = v; m}
       @data_directory = data_directory
-      @log_directory  = log_directory
-      if log_directory
-        @logger = Logger.new File.join(log_directory, 'conveyor.log')
+      @log_directory  = options[:log_directory]
+      @unsafe_mode    = options[:unsafe_mode] # allows deleting of channels. REALLY UNSAFE!
+
+      if @log_directory
+        @logger = Logger.new File.join(@log_directory, 'conveyor.log')
       else
         @logger = Logger.new '/dev/null'
       end
+
       @channels = {}
       Dir.entries(@data_directory).each do |e|
         if !['.', '..'].include?(e) && File.directory?(File.join(@data_directory, e))
           @channels[e] = Channel.new(File.join(@data_directory, e))
         end
       end
-      
+
       @requests = 0
     end
 
@@ -145,7 +149,7 @@ module Conveyor
         put(env, m)
       elsif env['REQUEST_METHOD'] == 'POST' && m = path_match(env, %r{/channels/(.*)})
         post(env, m)
-      elsif env['REQUEST_METHOD'] == 'DELETE' && m = path_match(env, %r{/channels/(.*)})
+      elsif @unsafe_mode && env['REQUEST_METHOD'] == 'DELETE' && m = path_match(env, %r{/channels/(.*)})
         delete(env, m)
       elsif env['REQUEST_METHOD'] == 'GET'
         get(env)

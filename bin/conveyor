@@ -23,6 +23,10 @@ opts = OptionParser.new do |opts|
   opts.on("-d", "Daemonize.") do |d|
     options[:daemonize] = d
   end
+  
+  opts.on("--unsafe", "Unsafe Mode.") do |d|
+    options[:unsafe] = d
+  end
 end
 
 opts.parse!
@@ -42,7 +46,7 @@ end
 
 Thin::Server.start('0.0.0.0', options[:port]) do
   map '/channels' do
-    run Conveyor::App.new(ARGV[0], options[:log_directory])
+    run Conveyor::App.new(ARGV[0], :log_directory => options[:log_directory], :unsafe_mode => options[:unsafe])
   end
 end
 

@@ -77,11 +77,12 @@ module Conveyor
         i = @last_id + 1
         t = time || Time.now
         b = pick_bucket(i)
+        flags = 0
         header, o = nil
         bucket_file(b) do |f|
           f.seek(0, IO::SEEK_END)
           o = f.pos
-          header = "#{i} #{t.to_i} #{o} #{l} #{h}"
+          header = "#{i} #{t.to_i} #{o} #{l} #{h} #{flags}"
           f.write("#{header}\n")
           f.write(compressed_data)
           f.write("\n")
@@ -113,7 +114,7 @@ module Conveyor
     end
 
     def self.parse_headers str, index_file=false
-      pattern =  '\A(\d+) (\d+) (\d+) (\d+) ([a-f0-9]+)'
+      pattern =  '\A(\d+) (\d+) (\d+) (\d+) ([a-f0-9]+) (\d+)'
       pattern += ' (\d+)' if index_file
       pattern += '\Z'
       m = str.match(Regexp.new(pattern))
@@ -122,8 +123,9 @@ module Conveyor
         :time   => m.captures[1].to_i,
         :offset => m.captures[2].to_i,
         :length => m.captures[3].to_i,
-        :hash   => m.captures[4], 
-        :file   => (index_file ? m.captures[5].to_i : nil)
+        :hash   => m.captures[4],
+        :flags  => m.captures[5].to_i,
+        :file   => (index_file ? m.captures[6].to_i : nil)
       }
     end
 

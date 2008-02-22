@@ -34,29 +34,39 @@ class Upgrader
   end
 
   def from_0
-    # create tmp dir
-    tmp_dir = create_tmp_dir!
-    puts "writing to #{tmp_dir}"
-    chan = Channel.new(tmp_dir)
+    Dir.glob(@directory + "/*").each do |d|
+      p d
+      if File.directory?(d)
+        # create tmp dir
+        tmp_dir = create_tmp_dir!
+        puts "writing to #{tmp_dir}"
+        chan = Channel.new(tmp_dir)
 
-    Dir.glob("#{@directory}/[0-9]*").each do |f|
-      puts "upgrading #{f}"
-      size = File.size(f)
-      f    = File.open(f)
+        Dir.glob("#{d}/[0-9]*").each do |f|
+          puts "upgrading #{f}"
+          size = File.size(f)
+          f    = File.open(f)
       
-      while f.pos < size
-        l       = f.readline.strip
-        header  = BaseChannel.parse_headers(l)
-        content = f.read(header[:length])
-        f.readline # newline chomp
+          while f.pos < size
+            l       = f.readline.strip
+            header  = BaseChannel.parse_headers(l)
+            content = f.read(header[:length])
+            f.readline # newline chomp
         
-        chan.commit(content, Time.parse(header[:time]))
+            chan.commit(content, Time.parse(header[:time]))
+          end
+        end
+
+        puts "backing up #{d} to #{d}.bak"
+        FileUtils.mv d, d + ".bak"
+
+        puts "copying from #{tmp_dir} to #{d}"
+        FileUtils.cp_r tmp_dir, d
+
+        puts "deleting temp data"
+        FileUtils.rm_r tmp_dir
       end
     end
-
-    puts "new data ready in #{tmp_dir}:"
-    puts "cp -r #{tmp_dir} #{@directory}"
-    puts "should do the trick"
   end
   
   def create_tmp_dir!

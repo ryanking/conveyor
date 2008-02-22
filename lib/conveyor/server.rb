@@ -78,6 +78,9 @@ module Conveyor
             [400, {}, "A valid Date header is required for all POSTs."]
           end
         end
+      elsif Channel.valid_channel_name?(m.captures[0])
+        create_new_channel(m.captures[0])
+        post(env, m)
       else
         [404, {}, '']
       end

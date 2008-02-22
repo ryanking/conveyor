@@ -268,5 +268,12 @@ class TestConveyorServer < Test::Unit::TestCase
     end
   end
 
+  def test_autocreate_channel
+    chan = "test_autocreate_channel"
+    c = Client.new 'localhost'
+    c.post chan, 'foo'
+    assert_equal 'foo', c.get_next(chan)
+  end
+
 end
 

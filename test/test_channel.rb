@@ -21,6 +21,8 @@ class TestConveyorChannel < Test::Unit::TestCase
   end
   
   def test_parse_headers
+    FileUtils.rm_r '/tmp/foo' rescue nil
+
     i = Channel.new '/tmp/foo'
     [
       ["1 2008-01-08T13:04:40-08:00 0 3 acbd18db4cc2f85cedef654fccc4a4d8\n", 
@@ -37,6 +39,8 @@ class TestConveyorChannel < Test::Unit::TestCase
     ].each do |(str, ret)|
       assert_equal ret, i.parse_headers(str, true)
     end
+    
+    FileUtils.rm_r '/tmp/foo'
   end
 
   def test_init_existing

@@ -8,33 +8,13 @@ module Conveyor
 
     # If +directory+ doesn't already exist, it will be created during initialization.
     def initialize directory
-      @group_iterators         = {}
-      @group_iterators_files   = {}
-      
+      @group_iterators       = {}
+      @group_iterators_files = {}
+      @iterator_lock         = Mutex.new
+
       super(directory)
-      
-      iterator_path = File.join(@directory, 'iterator')
 
-      if File.exists?(iterator_path) && File.size(iterator_path) > 0
-        @iterator_file = File.open(iterator_path, 'r+')
-        @iterator_file.each_line do |line|
-          @iterator = line.to_i
-        end
-        @iterator_file.seek(0, IO::SEEK_END)
-      else
-        @iterator_file = File.open(iterator_path, 'a')
-      end
-      @iterator_file.sync = true
-
-      Dir.glob(File.join(@directory, 'iterator-*')) do |i|
-        g = i.split(%r{/}).last.match(%r{iterator-(.*)}).captures[0]
-        @group_iterators_files[g] = File.open(i, 'r+')
-        @group_iterators[g] = 1
-        @group_iterators_files[g].each_line do |line|
-          @group_iterators[g] = line.to_i
-        end
-        @group_iterators_files[g].seek(0, IO::SEEK_END)
-      end
+      @iterator_file.sync    = true
     end
 
     # Add data to the channel.
@@ -134,6 +114,7 @@ module Conveyor
       end
     end
 
+
     private
 
     def group_iterators_file group
@@ -142,6 +123,38 @@ module Conveyor
         @group_iterators_files[group].sync = true
       end
       yield @group_iterators_files[group]
+    end
+
+    def load_channel
+      super
+      @iterator_file = File.open(iterator_path, 'r+')
+      @iterator_file.each_line do |line|
+        @iterator = line.to_i
+      end
+      @iterator_file.seek(0, IO::SEEK_END)
+
+      Dir.glob(File.join(@directory, 'iterator-*')) do |i|
+        g = i.split(%r{/}).last.match(%r{iterator-(.*)}).captures[0]
+        @group_iterators_files[g] = File.open(i, 'r+')
+        @group_iterators[g] = 1
+        @group_iterators_files[g].each_line do |line|
+          @group_iterators[g] = line.to_i
+        end
+        @group_iterators_files[g].seek(0, IO::SEEK_END)
+      end
+    end
+
+    def setup_channel
+      super
+      @iterator_file = File.open(iterator_path, 'a')
+    end
+
+    def iterator_path
+      File.join(@directory, 'iterator')
+    end
+
+    def version_path
+      File.join(@directory, 'version')
     end
   end
 end

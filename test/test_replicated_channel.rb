@@ -32,6 +32,9 @@ class TestReplicatedChannel < Test::Unit::TestCase
     
     assert_equal c1.get(1), c2.get(1)
     assert_equal c1.get(2), c2.get(2)
+
+    FileUtils.rm_r '/tmp/foo' rescue nil
+    FileUtils.rm_r '/tmp/bar' rescue nil
   end
   
   def test_more

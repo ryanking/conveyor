@@ -1,0 +1,21 @@
+#!/usr/bin/env ruby -KU
+
+puts "You should probably do a backup before running this. I'm going to wait 10 seconds before proceding. Control-C to abort."
+
+10.times do
+  print '.'
+  STDOUT.flush
+  sleep 1
+end
+
+puts
+puts "OK, serious time."
+
+$: << 'lib'
+
+require 'conveyor/server'
+require 'conveyor/upgrader'
+
+u = Conveyor::Upgrader.new ARGV.first
+
+u.upgrade

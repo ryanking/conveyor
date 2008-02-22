@@ -21,7 +21,7 @@ module Conveyor
 
       @channels = {}
       Dir.entries(@data_directory).each do |e|
-        if !['.', '..'].include?(e) && File.directory?(File.join(@data_directory, e))
+        if !['.', '..'].include?(e) && File.directory?(File.join(@data_directory, e)) && Channel.valid_channel_name?(e)
           @channels[e] = Channel.new(File.join(@data_directory, e))
         end
       end

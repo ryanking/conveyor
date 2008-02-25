@@ -162,46 +162,46 @@ class TestConveyorServer < Test::Unit::TestCase
 
   def test_group_rewind
     chan = 'test_group_rewind'
-    c = Client.new 'localhost'
-    c.create_channel chan
-    c.post chan, 'foo'
+    c = Client.new 'localhost', chan
+    c.create_channel
+    c.post 'foo'
     
-    assert_equal 'foo', c.get_next(chan, 'bar')
-    c.rewind(chan, 1, 'bar')
-    assert_equal 'foo', c.get_next(chan, 'bar')
-    c.rewind(chan, 1, 'bar')
+    assert_equal 'foo', c.get_next('bar')
+    c.rewind(1, 'bar')
+    assert_equal 'foo', c.get_next('bar')
+    c.rewind(1, 'bar')
   end
 
   def test_get_next_by_group
-    c = Conveyor::Client.new 'localhost'
     chan = 'test_get_next_by_group'
-    c.create_channel chan
-    c.post chan, 'foo'
-    c.post chan, 'bar'
-    c.post chan, 'bam'
+    c = Conveyor::Client.new 'localhost', chan
+    c.create_channel
+    c.post 'foo'
+    c.post 'bar'
+    c.post 'bam'
 
     group = 'bam'
 
-    assert_equal 'foo', c.get_next(chan, group)
-    assert_equal 'bar', c.get_next(chan, group)
-    assert_equal 'bam', c.get_next(chan, group)
-    assert_equal '',   c.get_next(chan, group)
+    assert_equal 'foo', c.get_next(group)
+    assert_equal 'bar', c.get_next(group)
+    assert_equal 'bam', c.get_next(group)
+    assert_equal '',   c.get_next(group)
 
     group = 'bar'
-    assert_equal 'foo', c.get_next(chan, group)
-    assert_equal 'bar', c.get_next(chan, group)
-    assert_equal 'bam', c.get_next(chan, group)
-    assert_equal '',    c.get_next(chan, group)
+    assert_equal 'foo', c.get_next(group)
+    assert_equal 'bar', c.get_next(group)
+    assert_equal 'bam', c.get_next(group)
+    assert_equal '',    c.get_next(group)
   end
 
   def test_get_next_n
     chan = 'test_get_next_n'
-    c = Client.new 'localhost'
-    c.create_channel chan
-    100.times {|i| c.post chan, i.to_s}
+    c = Client.new 'localhost', chan
+    c.create_channel
+    100.times {|i| c.post i.to_s}
 
     10.times do |j|
-      r = c.get_next_n chan, 10
+      r = c.get_next_n 10
       r.each_with_index do |f, i|
         assert_equal((j*10 + i)+1,                           f["id"])
         assert_equal(Digest::MD5.hexdigest((j*10 + i).to_s), f["hash"])
@@ -209,10 +209,10 @@ class TestConveyorServer < Test::Unit::TestCase
       end
     end
     
-    100.times {|i| c.post chan, i.to_s}
+    100.times {|i| c.post i.to_s}
 
     10.times do |j|
-      r = c.get_next_n chan, 10
+      r = c.get_next_n 10
       r.each_with_index do |f, i|
         assert_equal(Digest::MD5.hexdigest((j*10 + i).to_s), f["hash"])
         assert_equal((100 + j*10 + i)+1,                     f["id"])
@@ -223,12 +223,12 @@ class TestConveyorServer < Test::Unit::TestCase
 
   def test_get_next_n_by_group
     chan = 'test_get_next_n_by_group'
-    c = Client.new 'localhost'
-    c.create_channel chan
-    100.times {|i| c.post chan, i.to_s}
+    c = Client.new 'localhost', chan
+    c.create_channel
+    100.times {|i| c.post i.to_s}
 
     10.times do |j|
-      r = c.get_next_n chan, 10, 'foo'
+      r = c.get_next_n 10, 'foo'
       r.each_with_index do |f, i|
         assert_equal(Digest::MD5.hexdigest((j*10 + i).to_s), f[0]["hash"])
         assert_equal((j*10 + i)+1,                           f[0]["id"])
@@ -236,17 +236,17 @@ class TestConveyorServer < Test::Unit::TestCase
       end
     end
 
-    assert_equal [], c.get_next_n(chan, 10, 'foo')
+    assert_equal [], c.get_next_n(10, 'foo')
 
     10.times do |j|
-      r = c.get_next_n chan, 10, 'bar'
+      r = c.get_next_n 10, 'bar'
       r.each_with_index do |f, i|
         assert_equal Digest::MD5.hexdigest((j*10 + i).to_s), f[0]["hash"]
         assert_equal((j*10 + i)+1,                           f[0]["id"])
         assert_equal((j*10 + i).to_s,                        f[1])
       end
     end
-    assert_equal [], c.get_next_n(chan, 10, 'bar')
+    assert_equal [], c.get_next_n(10, 'bar')
   end
 
   def test_delete
@@ -270,9 +270,9 @@ class TestConveyorServer < Test::Unit::TestCase
 
   def test_autocreate_channel
     chan = "test_autocreate_channel"
-    c = Client.new 'localhost'
-    c.post chan, 'foo'
-    assert_equal 'foo', c.get_next(chan)
+    c = Client.new 'localhost', chan
+    c.post 'foo'
+    assert_equal 'foo', c.get_next
   end
 
 end

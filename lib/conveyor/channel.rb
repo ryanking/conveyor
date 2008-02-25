@@ -11,6 +11,7 @@ module Conveyor
       @group_iterators       = {}
       @group_iterators_files = {}
       @iterator_lock         = Mutex.new
+      @group_iterator_locks  = Hash.new{|k,v| Mutex.new }
 
       super(directory)
 
@@ -25,7 +26,7 @@ module Conveyor
     # Returns the next item from the global (non-group) iterator.
     def get_next
       r = nil
-      Thread.exclusive do
+      iterator_lock do
         if @iterator <= @last_id
           r = get(@iterator)
           @iterator += 1
@@ -40,7 +41,7 @@ module Conveyor
     # Returns the next item for +group+. If +group+ hasn't been seen before, the first item is returned.
     def get_next_by_group group
       r = nil
-      Thread.exclusive do
+      group_iterator_lock(group) do
         @group_iterators[group] = 1 unless @group_iterators.key?(group)
         if @iterator <= @last_id
           r = get(@group_iterators[group])
@@ -57,7 +58,7 @@ module Conveyor
 
     def get_next_n n
       r = []
-      Thread.exclusive do
+      iterator_lock do
         while r.length < n && @iterator <= @last_id
           r << get(@iterator)
           @iterator += 1
@@ -70,7 +71,7 @@ module Conveyor
     
     def get_next_n_by_group n, group
       r = []
-      Thread.exclusive do
+      group_iterator_lock(group) do
         @group_iterators[group] = 1 unless @group_iterators.key?(group)
         while r.length < n && @group_iterators[group] < @last_id
           r << get(@group_iterators[group])
@@ -99,14 +100,14 @@ module Conveyor
       opts = opts.first
       if opts.key?(:id)
         if opts.key?(:group)
-          Thread.exclusive do
+          group_iterator_lock(opts[:group]) do
             @group_iterators[opts[:group]] = opts[:id].to_i
             group_iterators_file(opts[:group]) do |f|
               f.write("#{@group_iterators[opts[:group]].to_s(36)}\n")
             end
           end
         else
-          Thread.exclusive do
+          iterator_lock do
             @iterator = opts[:id].to_i
             @iterator_file.write("#{@iterator.to_s(36)}\n")
           end
@@ -116,6 +117,18 @@ module Conveyor
 
 
     private
+
+    def iterator_lock
+      @iterator_lock.synchronize do
+        yield
+      end
+    end
+
+    def group_iterator_lock group
+      @group_iterator_locks[group].synchronize do
+        yield
+      end
+    end
 
     def group_iterators_file group
       unless @group_iterators_files[group]

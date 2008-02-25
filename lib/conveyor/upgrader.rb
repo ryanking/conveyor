@@ -50,7 +50,7 @@ class Upgrader
 
   def from_0
     Dir.glob(@directory + "/*").each do |d|
-      p d
+
       if File.directory?(d)
         # create tmp dir
         tmp_dir = create_tmp_dir!
@@ -71,8 +71,29 @@ class Upgrader
             chan.commit(content, Time.parse(header[:time]))
           end
         end
-        
-        
+
+        puts "upgrading iterator"
+        iterator = File.open(File.join(d, 'iterator')) do |f|
+          l = nil
+          while !f.eof? && l = f.readline
+          end
+          if l
+            chan.rewind :id => l.strip.to_i
+          end
+        end
+
+        Dir.glob(File.join(d, 'iterator-*')) do |i|
+          group = i.split('/').last.split('-').last
+          puts "upgrading group iterator for #{group}"
+          iterator = File.open(i) do |f|
+            l = nil
+            while !f.eof? && l = f.readline
+            end
+            if l
+              chan.rewind :id => l.strip.to_i, :group => group
+            end
+          end
+        end
 
         puts "backing up #{d} to #{d}.bak"
         FileUtils.mv d, d + ".bak"

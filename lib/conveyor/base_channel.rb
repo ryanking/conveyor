@@ -16,6 +16,10 @@ module Conveyor
     BUCKET_SIZE = 100_000
     FORMAT_VERSION = 1
 
+    module Flags
+      GZIP = 1
+    end
+
     def initialize directory
       @directory    = directory
       @data_files   = []
@@ -63,28 +67,35 @@ module Conveyor
     end
 
     def commit data, time = nil
-      compressed_data = StringIO.new
-      g = Zlib::GzipWriter.new(compressed_data)
+      l = nil
+      gzip = data.length >= 256
+      if gzip
+        compressed_data = StringIO.new
+        g = Zlib::GzipWriter.new(compressed_data)
+        g << data
+        g.finish
+        compressed_data.rewind
+        compressed_data = compressed_data.read
+        l = compressed_data.length
+      else
+        l = data.length
+      end
 
-      g << data
-      g.finish
-      compressed_data.rewind
-      compressed_data = compressed_data.read
       h = Digest::MD5.hexdigest(data)
-      l = compressed_data.length
 
       id_lock do
         i = @last_id + 1
         t = time || Time.now
         b = pick_bucket(i)
         flags = 0
+        flags = flags | Flags::GZIP if gzip
         header, o = nil
         bucket_file(b) do |f|
           f.seek(0, IO::SEEK_END)
           o = f.pos
           header = "#{i.to_s(36)} #{t.to_i.to_s(36)} #{o.to_s(36)} #{l.to_s(36)} #{h} #{flags.to_s(36)}"
           f.write("#{header}\n")
-          f.write(compressed_data)
+          f.write((gzip ? compressed_data : data))
           f.write("\n")
         end
 
@@ -98,18 +109,22 @@ module Conveyor
     def get id, stream = false
       return nil unless id <= @last_id && id > 0
       i = @index[id-1]
-      header, content, compressed_content, g = nil
+      headers, content, compressed_content, g = nil
       bucket_file(i[:file]) do |f|
         f.seek i[:offset]
-        header  = f.readline.strip
+        headers  = parse_headers(f.readline.strip)
         compressed_content = f.read(i[:length])
       end
       io = StringIO.new(compressed_content)
-      g  = Zlib::GzipReader.new(io)
-      if stream
-        [parse_headers(header), g]
+      if (headers[:flags] & Flags::GZIP) != 0
+        g  = Zlib::GzipReader.new(io)
       else
-        [parse_headers(header), g.read]
+        g = io
+      end
+      if stream
+        [headers, g]
+      else
+        [headers, g.read]
       end
     end
 

@@ -140,7 +140,7 @@ class TestConveyorChannel < Test::Unit::TestCase
       :directory => '/tmp/bar',
       :index => {:size => 3},
       :data_files => [
-        {:path => '/tmp/bar/0', :bytes => 218}
+        {:path => '/tmp/bar/0', :bytes => 158}
         ],
       :iterator => {:position => 1},
       :iterator_groups => {}

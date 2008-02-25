@@ -29,7 +29,7 @@ module Conveyor
         if @iterator <= @last_id
           r = get(@iterator)
           @iterator += 1
-          @iterator_file.write("#{@iterator}\n")
+          @iterator_file.write("#{@iterator.to_s(36)}\n")
           r
         else
           nil
@@ -46,7 +46,7 @@ module Conveyor
           r = get(@group_iterators[group])
           @group_iterators[group] += 1
           group_iterators_file(group) do |f|
-            f.write("#{@group_iterators[group]}\n")
+            f.write("#{@group_iterators[group].to_s(36)}\n")
           end
         else
           nil
@@ -61,7 +61,7 @@ module Conveyor
         while r.length < n && @iterator <= @last_id
           r << get(@iterator)
           @iterator += 1
-          @iterator_file.write("#{@iterator}\n")
+          @iterator_file.write("#{@iterator.to_s(36)}\n")
           r
         end
       end
@@ -76,7 +76,7 @@ module Conveyor
           r << get(@group_iterators[group])
           @group_iterators[group] += 1
           group_iterators_file(group) do |f|
-            f.write("#{@group_iterators[group]}\n")
+            f.write("#{@group_iterators[group].to_s(36)}\n")
           end
         end
       end
@@ -102,13 +102,13 @@ module Conveyor
           Thread.exclusive do
             @group_iterators[opts[:group]] = opts[:id].to_i
             group_iterators_file(opts[:group]) do |f|
-              f.write("#{@group_iterators[opts[:group]]}\n")
+              f.write("#{@group_iterators[opts[:group]].to_s(36)}\n")
             end
           end
         else
           Thread.exclusive do
             @iterator = opts[:id].to_i
-            @iterator_file.write("#{@iterator}\n")
+            @iterator_file.write("#{@iterator.to_s(36)}\n")
           end
         end
       end
@@ -129,7 +129,7 @@ module Conveyor
       super
       @iterator_file = File.open(iterator_path, 'r+')
       @iterator_file.each_line do |line|
-        @iterator = line.to_i
+        @iterator = line.to_i(36)
       end
       @iterator_file.seek(0, IO::SEEK_END)
 
@@ -138,7 +138,7 @@ module Conveyor
         @group_iterators_files[g] = File.open(i, 'r+')
         @group_iterators[g] = 1
         @group_iterators_files[g].each_line do |line|
-          @group_iterators[g] = line.to_i
+          @group_iterators[g] = line.to_i(36)
         end
         @group_iterators_files[g].seek(0, IO::SEEK_END)
       end

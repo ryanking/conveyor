@@ -82,14 +82,14 @@ module Conveyor
         bucket_file(b) do |f|
           f.seek(0, IO::SEEK_END)
           o = f.pos
-          header = "#{i} #{t.to_i} #{o} #{l} #{h} #{flags}"
+          header = "#{i.to_s(36)} #{t.to_i.to_s(36)} #{o.to_s(36)} #{l.to_s(36)} #{h} #{flags.to_s(36)}"
           f.write("#{header}\n")
           f.write(compressed_data)
           f.write("\n")
         end
 
         @last_id = i
-        @index_file.write "#{header} #{b}\n"
+        @index_file.write "#{header} #{b.to_s(36)}\n"
         @index << {:id => i, :time => t, :offset => o, :length => l, :hash => h, :file => b}
         i
       end
@@ -114,18 +114,18 @@ module Conveyor
     end
 
     def self.parse_headers str, index_file=false
-      pattern =  '\A(\d+) (\d+) (\d+) (\d+) ([a-f0-9]+) (\d+)'
+      pattern =  '\A([a-z\d]+) ([a-z\d]+) ([a-z\d]+) ([a-z\d]+) ([a-f0-9]+) ([a-z\d]+)'
       pattern += ' (\d+)' if index_file
       pattern += '\Z'
       m = str.match(Regexp.new(pattern))
       {
-        :id     => m.captures[0].to_i,
-        :time   => m.captures[1].to_i,
-        :offset => m.captures[2].to_i,
-        :length => m.captures[3].to_i,
+        :id     => m.captures[0].to_i(36),
+        :time   => m.captures[1].to_i(36),
+        :offset => m.captures[2].to_i(36),
+        :length => m.captures[3].to_i(36),
         :hash   => m.captures[4],
-        :flags  => m.captures[5].to_i,
-        :file   => (index_file ? m.captures[6].to_i : nil)
+        :flags  => m.captures[5].to_i(36),
+        :file   => (index_file ? m.captures[6].to_i(36) : nil)
       }
     end
 

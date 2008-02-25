@@ -1,7 +1,6 @@
 require 'digest/md5'
 require 'rubygems'
 require 'time'
-require 'priority_queue'
 require 'stringio'
 require 'zlib'
 require 'json'

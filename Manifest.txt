@@ -18,5 +18,4 @@ test/rand.rb
 test/test_channel.rb
 test/test_feeder-ng.rb
 test/test_priority_queue.rb
-test/test_replicated_channel.rb
 test/test_server.rb

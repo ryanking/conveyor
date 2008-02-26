@@ -1,3 +1,12 @@
+== 0.2.0 / 2008-02-26
+
+* switched from using Mongrel to Thin. this adds a dependency on thin, which depends on Event Machine
+* GZIPed storage. Entries over an arbitrary size (>=256 bytes) are compressed before written down. Since this constitutes a change in file format, the script conveyor-upgrade should be run on all date before running the new version.
+* Channels can now be deleted. This is very unsafe and only available when running with the --unsafe switch.
+* Channels are auto-created the first time you try and post a message to them.
+* Only channels with valid names are opened by the server.
+* The client API was refactored to be more like the Channel API and Channel-specific.
+
 == 0.1.4 / 2008-02-19
 * support for getting multiple items at once
 * rewinding implemented for group iterators

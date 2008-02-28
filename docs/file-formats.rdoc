@@ -1,15 +1,16 @@
-= FILE FORMATS
-==  DATA FILES
+= File Formats
+== Data Files
 
-id time offset length hash
-content
-...
+ id timestamp offset length hash flags
+ content
+ ...
 
 contrived example:
 
-1213124 2008-01-05T13:35:32 1234 11 asdfasdfasdfasdfasdfasdfasdfa
-foo bar bam
+ q01w 3mp0a6g ya 11 asdfasdfasdfasdfasdfasdfasdfa 0
+ foo bar bam
 
+* all integers encoded in base-36
 * space separated line of metadata followed by content
 * delimiter might be useful for sanity checking, but the hash could probably suffice for ensuring that the offset was calculated and persisted properly. We should look at what ARC does here.
 * offset is to beginning of metadata line
@@ -17,15 +18,15 @@ foo bar bam
 
 === INDEX FILES
 
-id time offset length hash file
+id time offset length hash flags file
 
 contrived example:
 
-1213124 2008-01-05T13:35:32 1234 11 asdfasdfasdfasdfasdfasdfasdfa 1
+ q01w 3mp0a6g ya 11 asdfasdfasdfasdfasdfasdfasdfa 0 1
 
 notes:
-* 1 is the filename
-* assuming a lucene-style directory of datafiles + ToC/index
+* '1' is the filename
+* lucene-style directory of datafiles + ToC/index
 * given that the files are written sequentially we can avoid writing every entry to the index file (as long as you write the first and last entry to the index). At most this means you have to read n entries, where n is the gap between index entries. Given that most clients will have persistent connections and be reading sequentially, we can do some clever things on the server side to make this really efficient (basically meaning you'll only have to pay that penalty on the first item you read).
 
 == LOG FILES

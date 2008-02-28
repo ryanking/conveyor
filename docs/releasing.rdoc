@@ -1,5 +1,4 @@
-Release procedure
-=================
+= Release procedure
 
 * use hg tag to find the last release tag
 * do a log from last release to tip
@@ -10,4 +9,4 @@ Release procedure
 * tag
 * release
 * post_news
-* post_docs
+* publish_docs

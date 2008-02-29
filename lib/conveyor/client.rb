@@ -45,11 +45,14 @@ module Conveyor
       end
     end
     
-    def rewind id, group=nil
-      if group
-        @conn.post("/channels/#{@channel}?rewind_id=#{id}&group=#{group}", nil)
-      else
-        @conn.post("/channels/#{@channel}?rewind_id=#{id}", nil)
+    def rewind *opts
+      opts = opts.inject{|h,m| m.merge(h)}
+      if opts.key?(:id) && opts.key?(:group)
+        @conn.post("/channels/#{@channel}?rewind_id=#{opts[:id]}&group=#{opts[:group]}", nil)
+      elsif opts.key?(:id)
+        @conn.post("/channels/#{@channel}?rewind_id=#{opts[:id]}", nil)
+      elsif opts.key?(:time)
+        @conn.post("/channels/#{@channel}?rewind_time=#{opts[:time].to_i}", nil)
       end
     end
 

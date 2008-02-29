@@ -68,6 +68,9 @@ module Conveyor
             @channels[m.captures[0]].rewind(:id => params['rewind_id']).to_i # TODO make sure this is an integer
             [200, {}, "iterator rewound to #{params['rewind_id']}"]
           end
+        elsif params.key?('rewind_time')
+          @channels[m.captures[0]].rewind(:time => params['rewind_time'].to_i) # TODO make sure this is an integer
+          [200, {}, "iterator rewound to #{params['rewind_time']}"]
         else
           if env.key?('HTTP_DATE') && d = Time.parse(env['HTTP_DATE'])
             id = @channels[m.captures[0]].post(env['rack.input'].read)

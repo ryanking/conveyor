@@ -252,7 +252,7 @@ class TestConveyorChannel < Test::Unit::TestCase
   end
 
   def test_get_by_timestamp
-    chan = 'test_delete'
+    chan = 'test_get_by_timestamp'
     FileUtils.rm_r "/tmp/#{chan}" rescue nil
     c = Channel.new("/tmp/#{chan}")
 
@@ -264,4 +264,21 @@ class TestConveyorChannel < Test::Unit::TestCase
     10.times{|i| c.post((10 + i).to_s)}
     assert_equal '9', c.get_nearest_after_timestamp(t0)[1]
   end
+  
+  def test_rewind_to_timestamp
+    chan = 'test_rewind_to_timestamp'
+    FileUtils.rm_r "/tmp/#{chan}" rescue nil
+    c = Channel.new("/tmp/#{chan}")
+
+    10.times{|i| c.post(i.to_s)}
+    10.times{|i| assert_equal i.to_s, c.get_next[1]}
+
+    c.rewind :time => 0
+    10.times{|i| assert_equal i.to_s, c.get_next[1]}
+
+    t0 = Time.now.to_i + 1
+    c.rewind :time => t0
+    assert_equal nil, c.get_next
+  end
+  
 end

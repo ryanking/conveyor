@@ -49,7 +49,8 @@ class TestConveyorServer < Test::Unit::TestCase
         "WUSYY2dCBdDdZEiGWtyfC5yGKVMgDhzBhyNLwcefxa49fED1Sf05f8MlgXOBx6n5I6Ae2Wy3Mds", 
         "uAlUDvngWqDl3PaRVl1i9RcwDIvJlNp6yMy9RQgVsucwNvKaSOQlJMarWItKy8zT2ON08ElKkZ2aQJlb45Z8FwfE0xh8sA", 
         "NxWmEBmJp0uiNRhyxa26frQjfFaNERmZbConrytNQKnHfilFsZWAo0Qy8eVKgq", "ajq3i5ksiBovQYfvj", 
-        "yY3vhjeq","2IDeF0ccG8tRZIZSekz6fUii29"]
+        "yY3vhjeq","2IDeF0ccG8tRZIZSekz6fUii29"
+      ]
         
       data.each do |d|
         req = h.post("/channels/#{chan}", d, {'Content-Type' => 'application/octet-stream', 'Date' => Time.now.to_s})
@@ -62,7 +63,7 @@ class TestConveyorServer < Test::Unit::TestCase
       end
     end
   end
-  
+
   def test_invalid_channel
     Net::HTTP.start('localhost', 8011) do |h|
       req = h.put('/channels/|', '', {'Content-Type' => 'application/octet-stream'})
@@ -167,9 +168,9 @@ class TestConveyorServer < Test::Unit::TestCase
     c.post 'foo'
     
     assert_equal 'foo', c.get_next('bar')
-    c.rewind(1, 'bar')
+    c.rewind(:id => 1, :group => 'bar')
     assert_equal 'foo', c.get_next('bar')
-    c.rewind(1, 'bar')
+    c.rewind(:id => 1, :group => 'bar')
   end
 
   def test_get_next_by_group
@@ -288,5 +289,19 @@ class TestConveyorServer < Test::Unit::TestCase
     assert_equal '9', c.get_nearest_after_timestamp(t0)
   end
 
+  def test_rewind_to_timestamp
+    chan = 'test_rewind_to_timestamp'
+    c = Client.new('localhost', chan)
+
+    10.times{|i| c.post(i.to_s)}
+    10.times{|i| assert_equal i.to_s, c.get_next}
+
+    c.rewind :time => 0
+    10.times{|i| assert_equal i.to_s, c.get_next}
+
+    t0 = Time.now.to_i + 1
+    c.rewind :time => t0
+    assert_equal '', c.get_next
+  end
 end
 

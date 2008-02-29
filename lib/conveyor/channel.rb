@@ -97,7 +97,7 @@ module Conveyor
     end
 
     def rewind *opts
-      opts = opts.first
+      opts = opts.inject{|h, m| m.merge(h)}
       if opts.key?(:id)
         if opts.key?(:group)
           group_iterator_lock(opts[:group]) do
@@ -112,6 +112,8 @@ module Conveyor
             @iterator_file.write("#{@iterator.to_s(36)}\n")
           end
         end
+      elsif opts.key?(:time)
+        rewind :id => nearest_after(opts[:time])
       end
     end
 

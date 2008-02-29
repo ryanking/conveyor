@@ -1,3 +1,6 @@
+== 0.2.1 / 2008-02-29
+* added get by timestamp and rewind to timestamp (for groups, too)
+
 == 0.2.0 / 2008-02-26
 
 * switched from using Mongrel to Thin. this adds a dependency on thin, which depends on Event Machine

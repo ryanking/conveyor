@@ -5,8 +5,8 @@ README.txt
 Rakefile
 bin/conveyor
 bin/conveyor-upgrade
-docs/file-formats.mkd
-docs/protocol.mkd
+docs/file-formats.rdoc
+docs/protocol.rdoc
 lib/conveyor.rb
 lib/conveyor/base_channel.rb
 lib/conveyor/channel.rb

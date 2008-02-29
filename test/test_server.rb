@@ -275,5 +275,18 @@ class TestConveyorServer < Test::Unit::TestCase
     assert_equal 'foo', c.get_next
   end
 
+  def test_get_by_timestamp
+    chan = 'test_get_by_timestamp'
+    c = Client.new('localhost', chan)
+
+    10.times{|i| c.post(i.to_s)}
+    assert_equal '0', c.get_nearest_after_timestamp(0)
+    assert_equal '', c.get_nearest_after_timestamp(2**32)
+
+    t0 = Time.now.to_i
+    10.times{|i| c.post((10 + i).to_s)}
+    assert_equal '9', c.get_nearest_after_timestamp(t0)
+  end
+
 end
 

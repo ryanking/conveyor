@@ -22,14 +22,14 @@ A post to a channel URL with the message in the body.
 [Request] GET /channels/{channel name}/{id}
 [Response] success: 200, failure: 404
 
-=== Get by datetime
+=== Get by timestamp
 
 NOT IMPLEMENTED YET!
 
-[Request] GET /channels/{channel name}?at={ISO datetime like 2008-01-11T17:53:59}
+[Request] GET /channels/{channel name}?after={timestamp}
 [Response] success: 200
 
-Will return the first entry *after* that datetime.
+Will return the first entry *after* that timestamp.
 
 === Get Next (Queue-like semantics)
 

@@ -162,7 +162,7 @@ class TestConveyorChannel < Test::Unit::TestCase
     d = Channel.new('/tmp/bar')
     assert_equal 'foo', d.get_next[1]
   end
-  
+
   def test_group_rewind
     FileUtils.rm_r('/tmp/bar') rescue nil
     c = Channel.new('/tmp/bar')
@@ -176,7 +176,7 @@ class TestConveyorChannel < Test::Unit::TestCase
     d = Channel.new('/tmp/bar')
     assert_equal 'foo', d.get_next_by_group('bar')[1]
   end
-  
+
   def test_valid_name
     assert BaseChannel.valid_channel_name?(('a'..'z').to_a.join)
     assert BaseChannel.valid_channel_name?(('A'..'Z').to_a.join)
@@ -237,7 +237,7 @@ class TestConveyorChannel < Test::Unit::TestCase
     end
     assert_equal [], c.get_next_n_by_group(10, 'bar')
   end
-  
+
   def test_delete
     chan = 'test_delete'
     FileUtils.rm_r "/tmp/#{chan}" rescue nil
@@ -250,5 +250,18 @@ class TestConveyorChannel < Test::Unit::TestCase
     d = Channel.new("/tmp/#{chan}")
     assert_equal nil, d.get(1)
   end
-  
+
+  def test_get_by_timestamp
+    chan = 'test_delete'
+    FileUtils.rm_r "/tmp/#{chan}" rescue nil
+    c = Channel.new("/tmp/#{chan}")
+
+    10.times{|i| c.post(i.to_s)}
+    assert_equal '0', c.get_nearest_after_timestamp(0)[1]
+    assert_equal nil, c.get_nearest_after_timestamp(2**32)
+
+    t0 = Time.now.to_i
+    10.times{|i| c.post((10 + i).to_s)}
+    assert_equal '9', c.get_nearest_after_timestamp(t0)[1]
+  end
 end

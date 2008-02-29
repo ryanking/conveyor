@@ -65,7 +65,7 @@ module Conveyor
       end
     end
 
-    def commit data, time = nil
+    def commit data, time=nil
       l = nil
       gzip = data.length >= 256
       if gzip
@@ -105,7 +105,7 @@ module Conveyor
       end
     end
 
-    def get id, stream = false
+    def get id, stream=false
       return nil unless id <= @last_id && id > 0
       i = @index[id-1]
       headers, content, compressed_content, g = nil
@@ -125,6 +125,12 @@ module Conveyor
       else
         [headers, g.read]
       end
+    end
+
+    def get_nearest_after_timestamp timestamp, stream=false
+      # i = binary search to find nearest item at or after timestamp
+      i = nearest_after(timestamp)
+      get(i) if i
     end
 
     def self.parse_headers str, index_file=false
@@ -196,5 +202,24 @@ module Conveyor
       File.join(@directory, 'version')
     end
 
+    def nearest_after(timestamp)
+      low = 0
+      high = @index.length
+      while low < high
+        mid = (low + high) / 2
+        if (@index[mid][:time].to_i > timestamp)
+          high = mid - 1
+        elsif (@index[mid][:time].to_i < timestamp)
+          low = mid + 1
+        else
+          return mid
+        end
+      end
+      if timestamp <= @index[mid][:time].to_i
+        @index[mid][:id]
+      else
+        nil
+      end
+    end
   end
 end

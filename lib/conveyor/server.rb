@@ -111,6 +111,8 @@ module Conveyor
                 headers, content = @channels[m.captures[0]].get_next
               end
             end
+          elsif params.key? 'after'
+            headers, content = @channels[m.captures[0]].get_nearest_after_timestamp(params['after'].to_i)
           else
             return [200, {}, @channels[m.captures[0]].status.to_json]
           end

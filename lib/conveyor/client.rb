@@ -52,5 +52,9 @@ module Conveyor
         @conn.post("/channels/#{@channel}?rewind_id=#{id}", nil)
       end
     end
+
+    def get_nearest_after_timestamp timestamp
+      @conn.get("/channels/#{@channel}?after=#{timestamp.to_i}").body
+    end
   end
 end

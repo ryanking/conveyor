@@ -303,5 +303,21 @@ class TestConveyorServer < Test::Unit::TestCase
     c.rewind :time => t0
     assert_equal '', c.get_next
   end
+  
+  def test_rewind_group_to_timestamp
+    chan = 'test_rewind_group_to_timestamp'
+    group = 'foo'
+    c = Client.new('localhost', chan)
+
+    10.times{|i| c.post(i.to_s)}
+    10.times{|i| assert_equal i.to_s, c.get_next(group)}
+
+    c.rewind :time => 0, :group => group
+    10.times{|i| assert_equal i.to_s, c.get_next(group)}
+
+    t0 = Time.now.to_i + 1
+    c.rewind :time => t0, :group => group
+    assert_equal '', c.get_next(group)
+  end
 end
 

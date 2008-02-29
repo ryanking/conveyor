@@ -281,4 +281,21 @@ class TestConveyorChannel < Test::Unit::TestCase
     assert_equal nil, c.get_next
   end
   
+  def test_rewind_group_to_timestamp
+    chan = 'test_rewind_group_to_timestamp'
+    FileUtils.rm_r "/tmp/#{chan}" rescue nil
+    c = Channel.new("/tmp/#{chan}")
+
+    group = 'foo'
+    10.times{|i| c.post(i.to_s)}
+    10.times{|i| assert_equal i.to_s, c.get_next_by_group(group)[1]}
+
+    c.rewind :time => 0, :group => group
+    10.times{|i| assert_equal i.to_s, c.get_next_by_group(group)[1]}
+
+    t0 = Time.now.to_i + 1
+    c.rewind :time => t0, :group => group
+    assert_equal nil, c.get_next_by_group(group)
+  end
+  
 end

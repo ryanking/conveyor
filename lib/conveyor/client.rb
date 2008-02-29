@@ -51,6 +51,8 @@ module Conveyor
         @conn.post("/channels/#{@channel}?rewind_id=#{opts[:id]}&group=#{opts[:group]}", nil)
       elsif opts.key?(:id)
         @conn.post("/channels/#{@channel}?rewind_id=#{opts[:id]}", nil)
+      elsif opts.key?(:group) && opts.key?(:time)
+        @conn.post("/channels/#{@channel}?rewind_time=#{opts[:time].to_i}&group=#{opts[:group]}", nil)
       elsif opts.key?(:time)
         @conn.post("/channels/#{@channel}?rewind_time=#{opts[:time].to_i}", nil)
       end

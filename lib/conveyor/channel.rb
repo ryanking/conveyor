@@ -113,7 +113,11 @@ module Conveyor
           end
         end
       elsif opts.key?(:time)
-        rewind :id => nearest_after(opts[:time])
+        if opts.key?(:group)
+          rewind :id => nearest_after(opts[:time]), :group => opts[:group]
+        else
+          rewind :id => nearest_after(opts[:time])
+        end
       end
     end
 

@@ -90,6 +90,7 @@ module Conveyor
         create_new_channel(m.captures[0])
         post(env, m)
       else
+        i "#{env["REMOTE_ADDR"]} #{env["REQUEST_METHOD"]} #{env["REQUEST_PATH"]} 404"
         [404, {}, '']
       end
     end
@@ -145,6 +146,7 @@ module Conveyor
         return [200, {}, list.to_json]
       end
 
+      i "#{env["REMOTE_ADDR"]} #{env["REQUEST_METHOD"]} #{env["REQUEST_PATH"]} 404"
       return [404, {}, '']
     end
 
@@ -167,6 +169,7 @@ module Conveyor
       elsif env['REQUEST_METHOD'] == 'GET'
         get(env)
       else
+        i "#{env["REMOTE_ADDR"]} #{env["REQUEST_METHOD"]} #{env["REQUEST_PATH"]} 404"
         [404, {}, '']
       end
     end

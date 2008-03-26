@@ -186,6 +186,7 @@ module Conveyor
 
       @index_file = File.open(index_path, 'r+')
 
+      @last_id = 0
       @index_file.each_line do |line|
         @index << parse_headers(line.strip, true)
         @last_id = @index.last[:id]

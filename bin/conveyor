@@ -3,7 +3,7 @@
 require 'optparse'
 require 'rubygems'
 require 'daemons/daemonize'
-require 'thin'
+require 'rack'
 
 options = {:port => 8011, :daemonize => false}
 opts = OptionParser.new do |opts|
@@ -44,9 +44,10 @@ if options[:daemonize]
   Daemonize.daemonize
 end
 
-Thin::Server.start('0.0.0.0', options[:port]) do
+app = Rack::Builder.new do
   map '/channels' do
     run Conveyor::App.new(ARGV[0], :log_directory => options[:log_directory], :unsafe_mode => options[:unsafe])
   end
 end
 
+Rack::Handler::Mongrel.run(app, {:Host => '0.0.0.0', :Port => options[:port]})

@@ -2,7 +2,7 @@ require "test/unit"
 require "conveyor/server"
 require 'net/http'
 require 'conveyor/client'
-require 'thin'
+require 'rack'
 
 class TestConveyorServer < Test::Unit::TestCase
   include Conveyor
@@ -11,12 +11,14 @@ class TestConveyorServer < Test::Unit::TestCase
   FileUtils.mkdir('/tmp/asdf')
 
   Thread.start do
-    Thin::Server.start('0.0.0.0', 8011) do
+    app = Rack::Builder.new do
       map '/channels' do
-        run Conveyor::App.new('/tmp/asdf',  :unsafe_mode => true)
+        run Conveyor::App.new('/tmp/asdf', :unsafe_mode => true)
       end
     end
-  end
+
+    Rack::Handler::Mongrel.run(app, :Host => '0.0.0.0', :Port => 8011)
+   end
 
   def test_channels
     Net::HTTP.start("localhost", 8011) do |h|
@@ -148,7 +150,7 @@ class TestConveyorServer < Test::Unit::TestCase
       
       assert_kind_of Net::HTTPNotFound, req
       
-      req = h.post("/channels/#{chan}?rewind_id=1", nil)
+      req = h.post("/channels/#{chan}?rewind_id=1", nil, {'Content-Type' => 'application/octet-stream'})
       assert_kind_of Net::HTTPOK, req
       
       req = h.get("/channels/#{chan}?next")

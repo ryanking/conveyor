@@ -1,6 +1,7 @@
 require "test/unit"
 require 'fileutils'
 require "conveyor/replicated_channel"
+require 'priority_queue'
 
 class TestReplicatedChannel < Test::Unit::TestCase
   def test_basic

@@ -27,6 +27,10 @@ opts = OptionParser.new do |opts|
   opts.on("--unsafe", "Unsafe Mode.") do |d|
     options[:unsafe] = d
   end
+  
+  opts.on("--verbose", "Verbose mode. For debugging only.") do |d|
+    options[:verbose] = d
+  end
 end
 
 opts.parse!
@@ -46,7 +50,10 @@ end
 
 app = Rack::Builder.new do
   map '/channels' do
-    run Conveyor::App.new(ARGV[0], :log_directory => options[:log_directory], :unsafe_mode => options[:unsafe])
+    run Conveyor::App.new(ARGV[0], 
+          :log_directory => options[:log_directory], 
+          :unsafe_mode   => options[:unsafe], 
+          :verbose       => options[:verbose])
   end
 end
 

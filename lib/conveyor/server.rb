@@ -4,6 +4,7 @@ require 'conveyor/channel'
 require 'fileutils'
 require 'json'
 require 'logger'
+require 'pp'
 
 module Conveyor
   class App
@@ -12,6 +13,7 @@ module Conveyor
       @data_directory = data_directory
       @log_directory  = options[:log_directory]
       @unsafe_mode    = options[:unsafe_mode] # allows deleting of channels. REALLY UNSAFE!
+      @verbose        = options[:verbose]
 
       if @log_directory
         @logger = Logger.new File.join(@log_directory, 'conveyor.log')
@@ -159,6 +161,9 @@ module Conveyor
     end
 
     def call(env)
+      if @verbose
+        pp env
+      end
       @requests += 1
       if env['REQUEST_METHOD']    == 'PUT'  && m = path_match(env, %r{/channels/(.*)})
         put(env, m)

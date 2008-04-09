@@ -43,7 +43,7 @@ module Conveyor
       r = nil
       group_iterator_lock(group) do
         @group_iterators[group] = 1 unless @group_iterators.key?(group)
-        if @iterator <= @last_id
+        if @group_iterators[group] <= @last_id
           r = get(@group_iterators[group])
           @group_iterators[group] += 1
           group_iterators_file(group) do |f|

@@ -1,3 +1,9 @@
+== 0.2.2 / 2008-04-10
+* make sure that an empty channel still has @last_id set
+* switch back to mongrel. too many problems with event machine on solaris
+* add logging for 404s. should probably switch this to a rack middleware
+* adding a verbose mode, that dumps debug output to stdout
+
 == 0.2.1 / 2008-02-29
 * added get by timestamp and rewind to timestamp (for groups, too)
 

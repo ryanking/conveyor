@@ -21,12 +21,17 @@ module Conveyor
         @logger = Logger.new '/dev/null'
       end
 
+      i "reading data"
+
       @channels = {}
       Dir.entries(@data_directory).each do |e|
         if !['.', '..'].include?(e) && File.directory?(File.join(@data_directory, e)) && Channel.valid_channel_name?(e)
+          i "initializing channel '#{e}'"
           @channels[e] = Channel.new(File.join(@data_directory, e))
         end
       end
+
+      i "done reading data"
 
       @requests = 0
     end

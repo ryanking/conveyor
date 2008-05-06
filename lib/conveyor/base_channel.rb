@@ -135,7 +135,7 @@ module Conveyor
 
     def self.parse_headers str, index_file=false
       pattern =  '\A([a-z\d]+) ([a-z\d]+) ([a-z\d]+) ([a-z\d]+) ([a-f0-9]+) ([a-z\d]+)'
-      pattern += ' (\d+)' if index_file
+      pattern += ' ([a-z\d]+)' if index_file
       pattern += '\Z'
       m = str.match(Regexp.new(pattern))
       {

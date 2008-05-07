@@ -21,6 +21,7 @@ module Conveyor
         @logger = Logger.new '/dev/null'
       end
 
+      t0 = Time.now
       i "reading data"
 
       @channels = {}
@@ -31,7 +32,7 @@ module Conveyor
         end
       end
 
-      i "done reading data"
+      i "done reading data (took #{Time.now - t0} sec.)"
 
       @requests = 0
     end

@@ -14,6 +14,7 @@ module Conveyor
     NAME_PATTERN = %r{\A[a-zA-Z\-0-9\_]+\Z}
     BUCKET_SIZE = 100_000
     FORMAT_VERSION = 1
+    INDEX_MODULO = 10
 
     module Flags
       GZIP = 1
@@ -99,20 +100,25 @@ module Conveyor
         end
 
         @last_id = i
+        index_offset = @index_file.pos
         @index_file.write "#{header} #{b.to_s(36)}\n"
-        @index << {:id => i, :time => t, :offset => o, :length => l, :hash => h, :file => b}
+        if i % INDEX_MODULO == 1
+          @index << {:id => i, :time => t, :offset => o, :length => l, :hash => h, :file => b, :index_offset => index_offset}
+        end
         i
       end
     end
 
     def get id, stream=false
       return nil unless id <= @last_id && id > 0
-      i = @index[id-1]
+      
+      index_entry = search_index(id)
+
       headers, content, compressed_content, g = nil
-      bucket_file(i[:file]) do |f|
-        f.seek i[:offset]
+      bucket_file(index_entry[:file]) do |f|
+        f.seek index_entry[:offset]
         headers  = parse_headers(f.readline.strip)
-        compressed_content = f.read(i[:length])
+        compressed_content = f.read(index_entry[:length])
       end
       io = StringIO.new(compressed_content)
       if (headers[:flags] & Flags::GZIP) != 0
@@ -167,7 +173,7 @@ module Conveyor
     protected
 
     def setup_channel
-      @index_file = File.open(index_path, 'a')
+      @index_file = File.open(index_path, 'a+')
       @last_id = 0
       @version = FORMAT_VERSION
       File.open(version_path, 'w+'){|f| f.write(@version.to_s)}
@@ -187,8 +193,11 @@ module Conveyor
       @index_file = File.open(index_path, 'r+')
 
       @last_id = 0
-      @index_file.each_line do |line|
+      while line = @index_file.gets
+        index_offset = @index_file.pos
         @index << parse_headers(line.strip, true)
+        @index.last[:index_offset] = index_offset
+
         @last_id = @index.last[:id]
       end
       @index_file.seek(0, IO::SEEK_END)
@@ -203,23 +212,35 @@ module Conveyor
       File.join(@directory, 'version')
     end
 
-    def nearest_after(timestamp)
-      low = 0
-      high = @index.length
-      while low < high
-        mid = (low + high) / 2
-        if (@index[mid][:time].to_i > timestamp)
-          high = mid - 1
-        elsif (@index[mid][:time].to_i < timestamp)
-          low = mid + 1
-        else
-          return mid
-        end
+    def search_index id
+      block_id = ((id-1) / INDEX_MODULO).to_i * INDEX_MODULO + 1
+      entry = (@index.find{|entry| entry[:id] == block_id})
+      @index_file.seek(entry[:index_offset])
+      until entry[:id] == id
+        entry = parse_headers(@index_file.gets.strip, true)
       end
-      if timestamp <= @index[mid][:time].to_i
-        @index[mid][:id]
-      else
+      @index_file.seek(0, IO::SEEK_END)
+      entry
+    end
+
+    def nearest_after(timestamp)
+      i = 0
+      while (i < @index.length - 1) && timestamp < @index[i+1][:time].to_i
+        i += 1
+      end
+      entry = @index[i]
+      @index_file.seek(entry[:index_offset])
+      begin
+        while entry[:time].to_i < timestamp && line = @index_file.readline
+          if entry[:time].to_i < timestamp
+            entry = parse_headers(line.strip, true)
+          end
+        end
+        entry[:id]
+      rescue EOFError => e
         nil
+      ensure
+        @index_file.seek(0, IO::SEEK_END)
       end
     end
   end

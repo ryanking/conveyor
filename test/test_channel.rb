@@ -138,12 +138,13 @@ class TestConveyorChannel < Test::Unit::TestCase
     
     status = {
       :directory => '/tmp/bar',
-      :index => {:size => 3},
+      :index => {:size => 1},
       :data_files => [
         {:path => '/tmp/bar/0', :bytes => 158}
         ],
       :iterator => {:position => 1},
-      :iterator_groups => {}
+      :iterator_groups => {},
+      :last_id => 3
     }
     
     assert_equal(status, c.status)
@@ -261,8 +262,10 @@ class TestConveyorChannel < Test::Unit::TestCase
     assert_equal nil, c.get_nearest_after_timestamp(2**32)
 
     t0 = Time.now.to_i
+    sleep 1 # we only have second-level granularity on time
+
     10.times{|i| c.post((10 + i).to_s)}
-    assert_equal '9', c.get_nearest_after_timestamp(t0)[1]
+    assert_equal '10', c.get_nearest_after_timestamp(t0)[1]
   end
   
   def test_rewind_to_timestamp

@@ -19,6 +19,7 @@ class TestConveyorServer < Test::Unit::TestCase
 
     Rack::Handler::Mongrel.run(app, :Host => '0.0.0.0', :Port => 8011)
    end
+   sleep 1
 
   def test_channels
     Net::HTTP.start("localhost", 8011) do |h|
@@ -120,7 +121,8 @@ class TestConveyorServer < Test::Unit::TestCase
         "index"=>{"size"=>1},
         "directory"=>"/tmp/asdf/#{chan}",
         "data_files"=>[{"path"=>"/tmp/asdf/#{chan}/0","bytes"=>122}],
-        "iterator"=>{"position"=>1}
+        "iterator"=>{"position"=>1}, 
+        "last_id" => 1
       }
       assert_equal json, JSON::parse(req.body)
       
@@ -287,8 +289,9 @@ class TestConveyorServer < Test::Unit::TestCase
     assert_equal '', c.get_nearest_after_timestamp(2**32)
 
     t0 = Time.now.to_i
+    sleep 1
     10.times{|i| c.post((10 + i).to_s)}
-    assert_equal '9', c.get_nearest_after_timestamp(t0)
+    assert_equal '10', c.get_nearest_after_timestamp(t0)
   end
 
   def test_rewind_to_timestamp

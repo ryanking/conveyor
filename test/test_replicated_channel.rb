@@ -5,11 +5,13 @@ require 'priority_queue'
 
 class TestReplicatedChannel < Test::Unit::TestCase
   def test_basic
-    FileUtils.rm_r '/tmp/foo' rescue nil
-    FileUtils.rm_r '/tmp/bar' rescue nil
+    chan1 = 'test_basic1'
+    chan2 = 'test_basic2'
+    FileUtils.rm_r chan1 rescue nil
+    FileUtils.rm_r chan2 rescue nil
     
-    c1 = Conveyor::ReplicatedChannel.new '/tmp/foo'
-    c2 = Conveyor::ReplicatedChannel.new '/tmp/bar'
+    c1 = Conveyor::ReplicatedChannel.new chan1
+    c2 = Conveyor::ReplicatedChannel.new chan2
     
     c1.peers << c2
     c2.peers << c1
@@ -34,8 +36,8 @@ class TestReplicatedChannel < Test::Unit::TestCase
     assert_equal c1.get(1), c2.get(1)
     assert_equal c1.get(2), c2.get(2)
 
-    FileUtils.rm_r '/tmp/foo' rescue nil
-    FileUtils.rm_r '/tmp/bar' rescue nil
+    FileUtils.rm_r chan1 rescue nil
+    FileUtils.rm_r chan2 rescue nil
   end
   
   def test_more

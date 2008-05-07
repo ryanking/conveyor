@@ -230,10 +230,12 @@ module Conveyor
       @last_id = 0
       while line = @index_file.gets
         index_offset = @index_file.pos
-        @index << parse_headers(line.strip, true)
-        @index.last[:index_offset] = index_offset
-
-        @last_id = @index.last[:id]
+        entry = parse_headers(line.strip, true)
+        if entry[:id] % INDEX_MODULO == 1
+          entry[:index_offset] = index_offset
+          @index << entry
+        end
+        @last_id = entry[:id]
       end
       @index_file.seek(0, IO::SEEK_END)
     end

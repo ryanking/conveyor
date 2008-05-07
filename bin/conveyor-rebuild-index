@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby -KU
+
+$: << 'lib'
+
+require 'conveyor/server'
+require 'conveyor/upgrader'
+
+if ARGV.first
+  FileUtils.mv(File.join(ARGV.first, 'index'), File.join(ARGV.first, 'index.bak'))
+  FileUtils.touch(File.join(ARGV.first, 'index'))
+  u = Conveyor::Channel.new ARGV.first
+
+  u.rebuild_index
+end

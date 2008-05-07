@@ -181,6 +181,30 @@ module Conveyor
       @last_id = 0
     end
 
+    def rebuild_index
+      Dir.glob(@directory + '/' + '[0-9]*').each do |f|
+        File.open(f, 'r') do |file|
+          b = f.split("/").last.to_i
+          while line = file.gets
+            headers = parse_headers(line.strip)
+            content = file.read(headers[:length])
+            file.read(1)
+            index_offset = nil
+            header = "#{headers[:id].to_s(36)} #{headers[:time].to_i.to_s(36)} #{headers[:offset].to_s(36)} #{headers[:length].to_s(36)} #{headers[:hash]} #{headers[:flags].to_s(36)}"
+            index_file_lock do
+              @index_file.seek(0, IO::SEEK_END)
+              index_offset = @index_file.pos
+              @index_file.write "#{header} #{b.to_s(36)}\n"
+            end
+            if headers[:id] % INDEX_MODULO == 1
+              @index << {:id => headers[:id], :time => headers[:time], :offset => headers[:offset], :length => headers[:length], 
+                          :hash => headers[:hash], :file => b, :index_offset => index_offset}
+            end
+          end
+        end
+      end
+    end
+
     protected
 
     def setup_channel

@@ -12,6 +12,7 @@ Hoe.new('conveyor', Conveyor::VERSION) do |p|
   p.extra_deps << ['mongrel']
   p.extra_deps << ['json']
   p.extra_deps << ['daemons']
+  p.extra_deps << ['rack']
 end
 
 # vim: syntax=Ruby

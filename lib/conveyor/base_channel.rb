@@ -27,6 +27,7 @@ module Conveyor
       @index        = []
       @iterator     = 1
       @id_lock      = Mutex.new
+      @index_file_lock = Mutex.new
 
       if File.exists?(@directory)
         if !File.directory?(@directory)
@@ -66,6 +67,12 @@ module Conveyor
       end
     end
 
+    def index_file_lock
+      @index_file_lock.synchronize do
+        yield
+      end
+    end
+
     def commit data, time=nil
       l = nil
       gzip = data.length >= 256
@@ -100,8 +107,12 @@ module Conveyor
         end
 
         @last_id = i
-        index_offset = @index_file.pos
-        @index_file.write "#{header} #{b.to_s(36)}\n"
+        index_offset = nil
+        index_file_lock do
+          @index_file.seek(0, IO::SEEK_END)
+          index_offset = @index_file.pos
+          @index_file.write "#{header} #{b.to_s(36)}\n"
+        end
         if i % INDEX_MODULO == 1
           @index << {:id => i, :time => t, :offset => o, :length => l, :hash => h, :file => b, :index_offset => index_offset}
         end
@@ -203,7 +214,6 @@ module Conveyor
       @index_file.seek(0, IO::SEEK_END)
     end
 
-
     def index_path
       File.join(@directory, 'index')
     end
@@ -215,11 +225,14 @@ module Conveyor
     def search_index id
       block_id = ((id-1) / INDEX_MODULO).to_i * INDEX_MODULO + 1
       entry = (@index.find{|entry| entry[:id] == block_id})
-      @index_file.seek(entry[:index_offset])
-      until entry[:id] == id
-        entry = parse_headers(@index_file.gets.strip, true)
+
+      index_file_lock do
+        @index_file.seek(entry[:index_offset])
+        until entry[:id] == id
+          entry = parse_headers(@index_file.gets.strip, true)
+        end
+        @index_file.seek(0, IO::SEEK_END)
       end
-      @index_file.seek(0, IO::SEEK_END)
       entry
     end
 
@@ -229,18 +242,20 @@ module Conveyor
         i += 1
       end
       entry = @index[i]
-      @index_file.seek(entry[:index_offset])
-      begin
-        while entry[:time].to_i < timestamp && line = @index_file.readline
-          if entry[:time].to_i < timestamp
-            entry = parse_headers(line.strip, true)
+      index_file_lock do
+        @index_file.seek(entry[:index_offset])
+        begin
+          while entry[:time].to_i < timestamp && line = @index_file.readline
+            if entry[:time].to_i < timestamp
+              entry = parse_headers(line.strip, true)
+            end
           end
+          entry[:id]
+        rescue EOFError => e
+          nil
+        ensure
+          @index_file.seek(0, IO::SEEK_END)
         end
-        entry[:id]
-      rescue EOFError => e
-        nil
-      ensure
-        @index_file.seek(0, IO::SEEK_END)
       end
     end
   end

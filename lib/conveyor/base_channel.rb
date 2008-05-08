@@ -11,10 +11,10 @@ module Conveyor
   # Base implementation for channels. Not useful to instantiate directly.
   class BaseChannel
 
-    NAME_PATTERN = %r{\A[a-zA-Z\-0-9\_]+\Z}
-    BUCKET_SIZE = 100_000
-    FORMAT_VERSION = 1
-    INDEX_MODULO = 10
+    NAME_PATTERN         = %r{\A[a-zA-Z\-0-9\_]+\Z}
+    BUCKET_SIZE          = 100_000
+    FORMAT_VERSION       = 1
+    INDEX_MODULO         = 10
 
     module Flags
       GZIP = 1
@@ -24,7 +24,6 @@ module Conveyor
       @directory    = directory
       @data_files   = []
       @file_mutexes = []
-      @index        = []
       @iterator     = 1
       @id_lock      = Mutex.new
       @index_file_lock = Mutex.new
@@ -151,18 +150,15 @@ module Conveyor
     end
 
     def self.parse_headers str, index_file=false
-      pattern =  '\A([a-z\d]+) ([a-z\d]+) ([a-z\d]+) ([a-z\d]+) ([a-f0-9]+) ([a-z\d]+)'
-      pattern += ' ([a-z\d]+)' if index_file
-      pattern += '\Z'
-      m = str.match(Regexp.new(pattern))
+      id, time, offset, length, hash, flags, file = str.split ' '
       {
-        :id     => m.captures[0].to_i(36),
-        :time   => m.captures[1].to_i(36),
-        :offset => m.captures[2].to_i(36),
-        :length => m.captures[3].to_i(36),
-        :hash   => m.captures[4],
-        :flags  => m.captures[5].to_i(36),
-        :file   => (index_file ? m.captures[6].to_i(36) : nil)
+        :id     => id.to_i(36),
+        :time   => time.to_i(36),
+        :offset => offset.to_i(36),
+        :length => length.to_i(36),
+        :hash   => hash,
+        :flags  => flags.to_i(36),
+        :file   => (index_file ? file.to_i(36) : nil)
       }
     end
 
@@ -211,6 +207,7 @@ module Conveyor
       @index_file = File.open(index_path, 'a+')
       @last_id = 0
       @version = FORMAT_VERSION
+      @index = []
       File.open(version_path, 'w+'){|f| f.write(@version.to_s)}
     end
 
@@ -226,11 +223,11 @@ module Conveyor
       end
 
       @index_file = File.open(index_path, 'r+')
-
+      @index = []
       @last_id = 0
       while line = @index_file.gets
         index_offset = @index_file.pos
-        entry = parse_headers(line.strip, true)
+        entry = self.class.parse_headers(line.strip, true)
         if entry[:id] % INDEX_MODULO == 1
           entry[:index_offset] = index_offset
           @index << entry

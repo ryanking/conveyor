@@ -21,15 +21,12 @@ class TestConveyorChannel < Test::Unit::TestCase
   end
 
   def test_parse_headers
-    FileUtils.rm_r '/tmp/foo' rescue nil
-
-    i = Channel.new '/tmp/foo'
     [
       ["1 jucfvs 0 3 acbd18db4cc2f85cedef654fccc4a4d8 0\n", 
        {:id => 1, :time => 1199826280, :offset => 0, :length => 3, :hash => "acbd18db4cc2f85cedef654fccc4a4d8", :file => nil, :flags => 0}
       ]
     ].each do |(str, ret)|
-      assert_equal ret, i.parse_headers(str)
+      assert_equal ret, Channel.parse_headers(str)
     end
     
     [
@@ -37,10 +34,8 @@ class TestConveyorChannel < Test::Unit::TestCase
        {:id => 2, :time => 1199826280, :offset => 0, :length => 3, :hash => "acbd18db4cc2f85cedef654fccc4a4d8", :file => 1, :flags => 0}
       ]
     ].each do |(str, ret)|
-      assert_equal ret, i.parse_headers(str, true)
+      assert_equal ret, Channel.parse_headers(str, true)
     end
-    
-    FileUtils.rm_r '/tmp/foo'
   end
 
   def test_init_existing

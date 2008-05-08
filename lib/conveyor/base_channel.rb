@@ -93,7 +93,7 @@ module Conveyor
 
       id_lock do
         i = @last_id + 1
-        t = time || Time.now
+        t = time || Time.now.to_i
         b = pick_bucket(i)
         flags = 0
         flags = flags | Flags::GZIP if gzip
@@ -192,7 +192,7 @@ module Conveyor
             content = file.read(headers[:length])
             file.read(1)
             index_offset = nil
-            header = "#{headers[:id].to_s(36)} #{headers[:time].to_i.to_s(36)} #{headers[:offset].to_s(36)} #{headers[:length].to_s(36)} #{headers[:hash]} #{headers[:flags].to_s(36)}"
+            header = "#{headers[:id].to_s(36)} #{headers[:time].to_s(36)} #{headers[:offset].to_s(36)} #{headers[:length].to_s(36)} #{headers[:hash]} #{headers[:flags].to_s(36)}"
             index_file_lock do
               @index_file.seek(0, IO::SEEK_END)
               index_offset = @index_file.pos
@@ -291,15 +291,15 @@ module Conveyor
 
     def nearest_after(timestamp)
       i = 0
-      while (i < @index.length - 1) && timestamp < @index[i+1][:time].to_i
+      while (i < @index.length - 1) && timestamp < @index[i+1][:time]
         i += 1
       end
       entry = @index[i]
       index_file_lock do
         @index_file.seek(entry[:index_offset])
         begin
-          while entry[:time].to_i <= timestamp && line = @index_file.readline
-            if entry[:time].to_i <= timestamp
+          while entry[:time] <= timestamp && line = @index_file.readline
+            if entry[:time] <= timestamp
               entry = parse_headers(line.strip, true)
             end
           end

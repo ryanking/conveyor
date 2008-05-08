@@ -5,8 +5,8 @@ require 'priority_queue'
 
 class TestReplicatedChannel < Test::Unit::TestCase
   def test_basic
-    chan1 = 'test_basic1'
-    chan2 = 'test_basic2'
+    chan1 = '/tmp/test_basic1'
+    chan2 = '/tmp/test_basic2'
     FileUtils.rm_r chan1 rescue nil
     FileUtils.rm_r chan2 rescue nil
     

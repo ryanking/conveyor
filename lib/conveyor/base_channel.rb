@@ -14,19 +14,21 @@ module Conveyor
     NAME_PATTERN         = %r{\A[a-zA-Z\-0-9\_]+\Z}
     BUCKET_SIZE          = 100_000
     FORMAT_VERSION       = 1
-    INDEX_MODULO         = 10
+    INDEX_MODULO         = 1000
 
     module Flags
       GZIP = 1
     end
 
     def initialize directory
-      @directory    = directory
-      @data_files   = []
-      @file_mutexes = []
-      @iterator     = 1
-      @id_lock      = Mutex.new
-      @index_file_lock = Mutex.new
+      @directory             = directory
+      @data_files            = []
+      @file_mutexes          = []
+      @iterator              = 1
+      @id_lock               = Mutex.new
+      @index_file_lock       = Mutex.new
+      @index_block_cache     = {}
+      @index_block_last_used = {}
 
       if File.exists?(@directory)
         if !File.directory?(@directory)
@@ -115,13 +117,17 @@ module Conveyor
         if i % INDEX_MODULO == 1
           @index << {:id => i, :time => t, :offset => o, :length => l, :hash => h, :file => b, :index_offset => index_offset}
         end
+        block_num = ((i-1) / INDEX_MODULO)
+        if @index_block_cache.key?(block_num)
+          @index_block_cache[block_num] << {:id => i, :time => t, :offset => o, :length => l, :hash => h, :file => b}
+        end
         i
       end
     end
 
     def get id, stream=false
       return nil unless id <= @last_id && id > 0
-      
+
       index_entry = search_index(id)
 
       headers, content, compressed_content, g = nil
@@ -225,14 +231,15 @@ module Conveyor
       @index_file = File.open(index_path, 'r+')
       @index = []
       @last_id = 0
+      index_offset = 0
       while line = @index_file.gets
-        index_offset = @index_file.pos
         entry = self.class.parse_headers(line.strip, true)
         if entry[:id] % INDEX_MODULO == 1
           entry[:index_offset] = index_offset
           @index << entry
         end
         @last_id = entry[:id]
+        index_offset = @index_file.pos
       end
       @index_file.seek(0, IO::SEEK_END)
     end
@@ -246,17 +253,40 @@ module Conveyor
     end
 
     def search_index id
-      block_id = ((id-1) / INDEX_MODULO).to_i * INDEX_MODULO + 1
-      entry = (@index.find{|entry| entry[:id] == block_id})
+      block_num = ((id-1) / INDEX_MODULO)
 
-      index_file_lock do
-        @index_file.seek(entry[:index_offset])
-        until entry[:id] == id
-          entry = parse_headers(@index_file.gets.strip, true)
+      if !@index_block_cache.has_key?(block_num)
+        a = []
+        block_head_id = block_num * INDEX_MODULO + 1 # first entry in the block
+
+        done = false
+        i = 0
+        while i < @index.length && !done
+          if @index[i][:id] == block_head_id
+            done = true
+          else
+            i += 1
+          end
         end
-        @index_file.seek(0, IO::SEEK_END)
+
+        entry = @index[i]
+        next_block = @index[i + 1]
+        buf = ''
+        index_file_lock do
+          @index_file.seek(entry[:index_offset])
+          if next_block
+            buf  = @index_file.read(next_block[:index_offset] - entry[:index_offset])
+          else
+            buf = @index_file.read
+          end
+          @index_file.seek(0, IO::SEEK_END)
+        end
+        buf.split(/\n/).each do |line|
+          a << parse_headers(line.strip, true)
+        end
+        @index_block_cache[block_num] = a
       end
-      entry
+      entry = @index_block_cache[block_num][id - 1 - (block_num * INDEX_MODULO)]
     end
 
     def nearest_after(timestamp)
@@ -268,14 +298,14 @@ module Conveyor
       index_file_lock do
         @index_file.seek(entry[:index_offset])
         begin
-          while entry[:time].to_i < timestamp && line = @index_file.readline
-            if entry[:time].to_i < timestamp
+          while entry[:time].to_i <= timestamp && line = @index_file.readline
+            if entry[:time].to_i <= timestamp
               entry = parse_headers(line.strip, true)
             end
           end
-          entry[:id]
+          return entry[:id]
         rescue EOFError => e
-          nil
+          return nil
         ensure
           @index_file.seek(0, IO::SEEK_END)
         end

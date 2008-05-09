@@ -87,9 +87,7 @@ module Conveyor
     def status
       {
         :directory => @directory,
-        :index     => {
-          :size => @index.length
-        },
+        :blocks => @blocks.length,
         :data_files => @data_files.collect{|f| {:path => f.path, :bytes => File.size(f.path)}},
         :iterator => {:position => @iterator},
         :iterator_groups => @group_iterators.inject({}){|m,(k,v)| m[k] = v; m},

@@ -133,7 +133,7 @@ class TestConveyorChannel < Test::Unit::TestCase
     
     status = {
       :directory => '/tmp/bar',
-      :index => {:size => 1},
+      :blocks => 1,
       :data_files => [
         {:path => '/tmp/bar/0', :bytes => 158}
         ],

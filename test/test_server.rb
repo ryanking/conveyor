@@ -118,7 +118,7 @@ class TestConveyorServer < Test::Unit::TestCase
       assert_kind_of Net::HTTPOK, req
       json = {
         "iterator_groups" => {},
-        "index"=>{"size"=>1},
+        "blocks" => 1,
         "directory"=>"/tmp/asdf/#{chan}",
         "data_files"=>[{"path"=>"/tmp/asdf/#{chan}/0","bytes"=>122}],
         "iterator"=>{"position"=>1}, 

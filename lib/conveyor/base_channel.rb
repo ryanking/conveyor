@@ -14,7 +14,7 @@ module Conveyor
     NAME_PATTERN         = %r{\A[a-zA-Z\-0-9\_]+\Z}
     BUCKET_SIZE          = 100_000
     FORMAT_VERSION       = 1
-    INDEX_MODULO         = 1000
+    BLOCK_SIZE         = 1000
 
     module Flags
       GZIP = 1
@@ -24,11 +24,11 @@ module Conveyor
       @directory             = directory
       @data_files            = []
       @file_mutexes          = []
-      @iterator              = 1
+      @iterator              = 1 #TODO: move to Channel.rb
       @id_lock               = Mutex.new
       @index_file_lock       = Mutex.new
-      @index_block_cache     = {}
-      @index_block_last_used = {}
+      @block_cache           = {}
+      @block_last_used       = {}
 
       if File.exists?(@directory)
         if !File.directory?(@directory)
@@ -45,6 +45,10 @@ module Conveyor
 
     def inspect
       "<#{self.class} dir:'#{@directory.to_s}' last_id:#{@last_id} iterator:#{@iterator}>"
+    end
+
+    def block_num i
+      ((i-1) / BLOCK_SIZE)
     end
 
     def pick_bucket i
@@ -114,12 +118,12 @@ module Conveyor
           index_offset = @index_file.pos
           @index_file.write "#{header} #{b.to_s(36)}\n"
         end
-        if i % INDEX_MODULO == 1
-          @index << {:id => i, :time => t, :offset => o, :length => l, :hash => h, :file => b, :index_offset => index_offset}
+        block_num = block_num(i)
+        if !@blocks[block_num]
+          @blocks << {:offset => index_offset}
         end
-        block_num = ((i-1) / INDEX_MODULO)
-        if @index_block_cache.key?(block_num)
-          @index_block_cache[block_num] << {:id => i, :time => t, :offset => o, :length => l, :hash => h, :file => b}
+        if @block_cache.key?(block_num)
+          @block_cache[block_num] << {:id => i, :time => t, :offset => o, :length => l, :hash => h, :file => b}
         end
         i
       end
@@ -133,7 +137,7 @@ module Conveyor
       headers, content, compressed_content, g = nil
       bucket_file(index_entry[:file]) do |f|
         f.seek index_entry[:offset]
-        headers  = parse_headers(f.readline.strip)
+        headers  = self.class.parse_headers(f.readline.strip)
         compressed_content = f.read(index_entry[:length])
       end
       io = StringIO.new(compressed_content)
@@ -168,19 +172,15 @@ module Conveyor
       }
     end
 
-    def parse_headers str, index_file=false
-      self.class.parse_headers str, index_file
-    end
-    
     def self.valid_channel_name? name
       !!name.match(NAME_PATTERN)
     end
 
     def delete!
       FileUtils.rm_r(@directory)
-      @index = []
       @data_files =[]
       @last_id = 0
+      @blocks = []
     end
 
     def rebuild_index
@@ -188,7 +188,7 @@ module Conveyor
         File.open(f, 'r') do |file|
           b = f.split("/").last.to_i
           while line = file.gets
-            headers = parse_headers(line.strip)
+            headers = self.class.parse_headers(line.strip)
             content = file.read(headers[:length])
             file.read(1)
             index_offset = nil
@@ -197,10 +197,6 @@ module Conveyor
               @index_file.seek(0, IO::SEEK_END)
               index_offset = @index_file.pos
               @index_file.write "#{header} #{b.to_s(36)}\n"
-            end
-            if headers[:id] % INDEX_MODULO == 1
-              @index << {:id => headers[:id], :time => headers[:time], :offset => headers[:offset], :length => headers[:length], 
-                          :hash => headers[:hash], :file => b, :index_offset => index_offset}
             end
           end
         end
@@ -213,7 +209,7 @@ module Conveyor
       @index_file = File.open(index_path, 'a+')
       @last_id = 0
       @version = FORMAT_VERSION
-      @index = []
+      @blocks = []
       File.open(version_path, 'w+'){|f| f.write(@version.to_s)}
     end
 
@@ -229,14 +225,13 @@ module Conveyor
       end
 
       @index_file = File.open(index_path, 'r+')
-      @index = []
+      @blocks = []
       @last_id = 0
       index_offset = 0
       while line = @index_file.gets
         entry = self.class.parse_headers(line.strip, true)
-        if entry[:id] % INDEX_MODULO == 1
-          entry[:index_offset] = index_offset
-          @index << entry
+        if entry[:id] % BLOCK_SIZE == 1
+          @blocks << {:offset => index_offset}
         end
         @last_id = entry[:id]
         index_offset = @index_file.pos
@@ -252,55 +247,49 @@ module Conveyor
       File.join(@directory, 'version')
     end
 
-    def search_index id
-      block_num = ((id-1) / INDEX_MODULO)
+    def cache_block block_num
+      a = []
 
-      if !@index_block_cache.has_key?(block_num)
-        a = []
-        block_head_id = block_num * INDEX_MODULO + 1 # first entry in the block
-
-        done = false
-        i = 0
-        while i < @index.length && !done
-          if @index[i][:id] == block_head_id
-            done = true
-          else
-            i += 1
-          end
+      buf = ''
+      block_start = @blocks[block_num][:offset]
+      block_end   = @blocks[block_num + 1] ? @blocks[block_num + 1][:offset] : nil
+      index_file_lock do
+        @index_file.seek(block_start)
+        if block_end
+          buf = @index_file.read(block_end - block_start)
+        else
+          buf = @index_file.read
         end
-
-        entry = @index[i]
-        next_block = @index[i + 1]
-        buf = ''
-        index_file_lock do
-          @index_file.seek(entry[:index_offset])
-          if next_block
-            buf  = @index_file.read(next_block[:index_offset] - entry[:index_offset])
-          else
-            buf = @index_file.read
-          end
-          @index_file.seek(0, IO::SEEK_END)
-        end
-        buf.split(/\n/).each do |line|
-          a << parse_headers(line.strip, true)
-        end
-        @index_block_cache[block_num] = a
+        @index_file.seek(0, IO::SEEK_END)
       end
-      entry = @index_block_cache[block_num][id - 1 - (block_num * INDEX_MODULO)]
+      buf.split(/\n/).each do |line|
+        a << self.class.parse_headers(line.strip, true)
+      end
+      @block_cache[block_num] = a
+    end
+
+    def search_index id
+      block_num = block_num(id)
+
+      if !@block_cache.has_key?(block_num)
+        cache_block(block_num)
+      end
+      entry = @block_cache[block_num][id - 1 - (block_num * BLOCK_SIZE)]
     end
 
     def nearest_after(timestamp)
       i = 0
-      while (i < @index.length - 1) && timestamp < @index[i+1][:time]
+      while (i < @blocks.length - 1) && timestamp < @blocks[i+1][:time]
         i += 1
       end
-      entry = @index[i]
+      block_start = @blocks[i][:offset]
       index_file_lock do
-        @index_file.seek(entry[:index_offset])
+        @index_file.seek(block_start)
+        entry = self.class.parse_headers(@index_file.gets)
         begin
           while entry[:time] <= timestamp && line = @index_file.readline
             if entry[:time] <= timestamp
-              entry = parse_headers(line.strip, true)
+              entry = self.class.parse_headers(line.strip, true)
             end
           end
           return entry[:id]

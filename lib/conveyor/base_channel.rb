@@ -282,23 +282,13 @@ module Conveyor
       while (i < @blocks.length - 1) && timestamp < @blocks[i+1][:time]
         i += 1
       end
-      block_start = @blocks[i][:offset]
-      index_file_lock do
-        @index_file.seek(block_start)
-        entry = self.class.parse_headers(@index_file.gets)
-        begin
-          while entry[:time] <= timestamp && line = @index_file.readline
-            if entry[:time] <= timestamp
-              entry = self.class.parse_headers(line.strip, true)
-            end
-          end
+      cache_block(i) if !@block_cache.has_key?(i)
+      @block_cache[i].each do |entry|
+        if entry[:time] > timestamp
           return entry[:id]
-        rescue EOFError => e
-          return nil
-        ensure
-          @index_file.seek(0, IO::SEEK_END)
         end
       end
+      return nil
     end
   end
 end

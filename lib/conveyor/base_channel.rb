@@ -11,10 +11,11 @@ module Conveyor
   # Base implementation for channels. Not useful to instantiate directly.
   class BaseChannel
 
-    NAME_PATTERN         = %r{\A[a-zA-Z\-0-9\_]+\Z}
-    BUCKET_SIZE          = 100_000
-    FORMAT_VERSION       = 1
-    BLOCK_SIZE         = 1000
+    NAME_PATTERN   = %r{\A[a-zA-Z\-0-9\_]+\Z}
+    BUCKET_SIZE    = 100_000
+    FORMAT_VERSION =       1
+    BLOCK_SIZE     =    1000
+    CACHE_SIZE     =     100
 
     module Flags
       GZIP = 1
@@ -248,6 +249,11 @@ module Conveyor
     end
 
     def cache_block block_num
+      if @block_cache.length > CACHE_SIZE
+        reject = @block_last_used.sort{|a,b| a[1] <=> b[1]}.last.first
+        @block_cache.delete(reject)
+        puts "rejected #{reject}"
+      end
       a = []
 
       buf = ''
@@ -274,6 +280,7 @@ module Conveyor
       if !@block_cache.has_key?(block_num)
         cache_block(block_num)
       end
+      @block_last_used[block_num] = Time.now.to_i
       entry = @block_cache[block_num][id - 1 - (block_num * BLOCK_SIZE)]
     end
 
@@ -283,12 +290,18 @@ module Conveyor
         i += 1
       end
       cache_block(i) if !@block_cache.has_key?(i)
+      @block_last_used[i] = Time.now.to_i
       @block_cache[i].each do |entry|
         if entry[:time] > timestamp
           return entry[:id]
         end
       end
-      return nil
+      if @blocks[i+1]
+        cache_block(i+1)
+        @block_cache[i+1].first[:id]
+      else
+        nil
+      end
     end
   end
 end

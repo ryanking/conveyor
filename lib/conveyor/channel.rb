@@ -85,14 +85,9 @@ module Conveyor
     end
 
     def status
-      {
-        :directory => @directory,
-        :blocks => @blocks.length,
-        :data_files => @data_files.collect{|f| {:path => f.path, :bytes => File.size(f.path)}},
-        :iterator => {:position => @iterator},
+      super.merge({
         :iterator_groups => @group_iterators.inject({}){|m,(k,v)| m[k] = v; m},
-        :last_id => @last_id
-      }
+      })
     end
 
     def rewind *opts

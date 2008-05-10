@@ -65,7 +65,7 @@ class TestConveyorChannel < Test::Unit::TestCase
     assert_equal 'bar', c.get_next[1]
     assert_equal 'bam', c.get_next[1]
     assert_equal nil, c.get_next
-    assert_equal 4, c.status[:iterator][:position]
+    assert_equal 4, c.status[:iterator]
   end
 
   def test_get_next_interupted
@@ -137,9 +137,10 @@ class TestConveyorChannel < Test::Unit::TestCase
       :data_files => [
         {:path => '/tmp/bar/0', :bytes => 158}
         ],
-      :iterator => {:position => 1},
+      :iterator => 1,
       :iterator_groups => {},
-      :last_id => 3
+      :last_id => 3,
+      :block_cache_keys => []
     }
     
     assert_equal(status, c.status)

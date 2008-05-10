@@ -38,7 +38,6 @@ module Conveyor
       !!name.match(NAME_PATTERN)
     end
 
-
     def initialize directory
       @directory             = directory
       @data_files            = []
@@ -171,6 +170,17 @@ module Conveyor
           end
         end
       end
+    end
+
+    def status
+      {
+        :directory        => @directory,
+        :data_files => @data_files.collect{|f| {:path => f.path, :bytes => File.size(f.path)}},
+        :iterator         => @iterator,
+        :block_cache_keys => @block_cache.keys,
+        :last_id => @last_id,
+        :blocks => @blocks.length,
+      }
     end
 
     protected

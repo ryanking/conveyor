@@ -121,8 +121,9 @@ class TestConveyorServer < Test::Unit::TestCase
         "blocks" => 1,
         "directory"=>"/tmp/asdf/#{chan}",
         "data_files"=>[{"path"=>"/tmp/asdf/#{chan}/0","bytes"=>122}],
-        "iterator"=>{"position"=>1}, 
-        "last_id" => 1
+        "iterator"=>1,
+        "last_id" => 1,
+        "block_cache_keys" => []
       }
       assert_equal json, JSON::parse(req.body)
       

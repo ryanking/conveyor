@@ -21,6 +21,24 @@ module Conveyor
       GZIP = 1
     end
 
+    def self.parse_headers str, index_file=false
+      id, time, offset, length, hash, flags, file = str.split ' '
+      {
+        :id     => id.to_i(36),
+        :time   => time.to_i(36),
+        :offset => offset.to_i(36),
+        :length => length.to_i(36),
+        :hash   => hash,
+        :flags  => flags.to_i(36),
+        :file   => (index_file ? file.to_i(36) : nil)
+      }
+    end
+
+    def self.valid_channel_name? name
+      !!name.match(NAME_PATTERN)
+    end
+
+
     def initialize directory
       @directory             = directory
       @data_files            = []
@@ -46,37 +64,6 @@ module Conveyor
 
     def inspect
       "<#{self.class} dir:'#{@directory.to_s}' last_id:#{@last_id} iterator:#{@iterator}>"
-    end
-
-    def block_num i
-      ((i-1) / BLOCK_SIZE)
-    end
-
-    def pick_bucket i
-      (i / BUCKET_SIZE).to_i
-    end
-
-    def bucket_file i
-      unless @data_files[i]
-        @data_files[i] = File.open(File.join(@directory, i.to_s), 'a+')
-        @data_files[i].sync = true
-        @file_mutexes[i] = Mutex.new
-      end
-      @file_mutexes[i].synchronize do
-        yield @data_files[i]
-      end
-    end
-
-    def id_lock
-      @id_lock.synchronize do
-        yield
-      end
-    end
-
-    def index_file_lock
-      @index_file_lock.synchronize do
-        yield
-      end
     end
 
     def commit data, time=nil
@@ -155,26 +142,8 @@ module Conveyor
     end
 
     def get_nearest_after_timestamp timestamp, stream=false
-      # i = binary search to find nearest item at or after timestamp
       i = nearest_after(timestamp)
       get(i) if i
-    end
-
-    def self.parse_headers str, index_file=false
-      id, time, offset, length, hash, flags, file = str.split ' '
-      {
-        :id     => id.to_i(36),
-        :time   => time.to_i(36),
-        :offset => offset.to_i(36),
-        :length => length.to_i(36),
-        :hash   => hash,
-        :flags  => flags.to_i(36),
-        :file   => (index_file ? file.to_i(36) : nil)
-      }
-    end
-
-    def self.valid_channel_name? name
-      !!name.match(NAME_PATTERN)
     end
 
     def delete!
@@ -205,6 +174,39 @@ module Conveyor
     end
 
     protected
+
+    def block_num i
+      ((i-1) / BLOCK_SIZE)
+    end
+
+    def pick_bucket i
+      (i / BUCKET_SIZE).to_i
+    end
+
+    def bucket_file i
+      unless @data_files[i]
+        @data_files[i] = File.open(File.join(@directory, i.to_s), 'a+')
+        @data_files[i].sync = true
+        @file_mutexes[i] = Mutex.new
+      end
+      @file_mutexes[i].synchronize do
+        yield @data_files[i]
+      end
+    end
+
+    def id_lock
+      @id_lock.synchronize do
+        yield
+      end
+    end
+
+    def index_file_lock
+      @index_file_lock.synchronize do
+        yield
+      end
+    end
+
+
 
     def setup_channel
       @index_file = File.open(index_path, 'a+')

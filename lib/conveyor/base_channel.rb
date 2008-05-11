@@ -153,9 +153,11 @@ module Conveyor
     end
 
     def rebuild_index
-      Dir.glob(@directory + '/' + '[0-9]*').each do |f|
+      files = Dir.glob(@directory + '/' + '[0-9]*')
+      files = files.map{|f| [f, f.split.last.to_i]}
+      files.sort!{|a,b| a[1] <=> b[1]}
+      files.each do |(f, b)|
         File.open(f, 'r') do |file|
-          b = f.split("/").last.to_i
           while line = file.gets
             headers = self.class.parse_headers(line.strip)
             content = file.read(headers[:length])
@@ -215,8 +217,6 @@ module Conveyor
         yield
       end
     end
-
-
 
     def setup_channel
       @index_file = File.open(index_path, 'a+')

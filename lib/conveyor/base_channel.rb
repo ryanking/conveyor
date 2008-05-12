@@ -154,10 +154,11 @@ module Conveyor
 
     def rebuild_index
       files = Dir.glob(@directory + '/' + '[0-9]*')
-      files = files.map{|f| [f, f.split.last.to_i]}
+      files = files.map{|f| [f, f.split('/').last.to_i]}
       files.sort!{|a,b| a[1] <=> b[1]}
       files.each do |(f, b)|
         File.open(f, 'r') do |file|
+          puts "reading #{f}"
           while line = file.gets
             headers = self.class.parse_headers(line.strip)
             content = file.read(headers[:length])

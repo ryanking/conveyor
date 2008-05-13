@@ -140,7 +140,8 @@ module Conveyor
 
     def load_channel
       super
-      @iterator_file = File.open(iterator_path, 'r+')
+      @iterator_file = File.open(iterator_path, 'a+')
+      @iterator_file.seek(0)
       @iterator_file.each_line do |line|
         @iterator = line.to_i(36)
       end

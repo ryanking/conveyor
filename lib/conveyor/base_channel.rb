@@ -244,6 +244,7 @@ module Conveyor
       index_offset = 0
       while line = @index_file.gets
         entry = self.class.parse_headers(line.strip, true)
+        raise "corrupt index. try rebuilding." unless entry[:id] == @last_id + 1
         if entry[:id] % BLOCK_SIZE == 1
           @blocks << {:offset => index_offset}
         end

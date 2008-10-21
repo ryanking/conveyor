@@ -1,3 +1,18 @@
+== 0.2.3 / 2008-10-21
+* update channel reading code for base-36
+* adding logging to the server startup process
+* new 2-level indexing scheme. only %10 of index items are held in memory 
+   * 10x reduction in memory useage
+   * 1000x speedup in startup time
+* added rack dependency
+* index rebuilding script
+* time the startup
+* some performance improvements for index loading
+* initial block caching strategy for lookups by id
+* cache rejecting + dealing with an edge case on nearest_after
+* refuse to open an index that isn't in sequential id order
+* log http response code when channel already exists
+
 == 0.2.2 / 2008-04-10
 * make sure that an empty channel still has @last_id set
 * switch back to mongrel. too many problems with event machine on solaris

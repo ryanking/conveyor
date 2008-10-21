@@ -56,7 +56,7 @@ module Conveyor
           i "#{env["REMOTE_ADDR"]} PUT #{env["REQUEST_PATH"]} 201"
           [201, {}, "created channel #{m.captures[0]}"]
         else
-          i "#{env["REMOTE_ADDR"]} PUT #{env["REQUEST_PATH"]}"
+          i "#{env["REMOTE_ADDR"]} PUT #{env["REQUEST_PATH"]} 202"
           [202, {}, "channel already exists. didn't do anything"]
         end
       else

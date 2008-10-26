@@ -105,7 +105,7 @@ module Conveyor
       headers = content = nil
       if m = request.path_info.match(%r{/(.*)/(\d+)})
         if @channels.key?(m.captures[0])
-          headers, content = @channels[m.captures[0]].get(m.captures[1].to_i)
+          headers, content = @channels[m.captures[0]].get(m.captures[1].to_i, true)
         end
       elsif m = request.path_info.match(%r{/(.*)})
         if @channels.key?(m.captures[0])

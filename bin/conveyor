@@ -4,6 +4,7 @@ require 'optparse'
 require 'rubygems'
 require 'daemons/daemonize'
 require 'rack'
+require 'thin'
 
 options = {:port => 8011, :daemonize => false}
 opts = OptionParser.new do |opts|
@@ -57,4 +58,4 @@ app = Rack::Builder.new do
   end
 end
 
-Rack::Handler::Mongrel.run(app, {:Host => '0.0.0.0', :Port => options[:port]})
+Rack::Handler::Thin.run(app, {:Host => '0.0.0.0', :Port => options[:port]})

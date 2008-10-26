@@ -22,8 +22,6 @@ Consuming items from a Channel is more flexible, you can:
 
 The payload for all of these is a stream of bytes. Conveyor will stream it back exactly as it was given.
 
-Ok, actually rewinding functionality is still TODO, but should be done soon.
-
 == REQUIREMENTS:
 
 * Ruby

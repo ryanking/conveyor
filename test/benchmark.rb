@@ -13,26 +13,23 @@ limit = (ARGV.first && ARGV.first.to_i)
 times = []
 i = 0
 t0 = Time.now
-c = Conveyor::Client.new 'localhost'
+c = Conveyor::Client.new 'localhost', 'test'
 m = Benchmark.measure do
-  c.create_channel('foo')
+  c.create_channel
   Dir.glob('test/data/*').each do |d|
     t1 = Time.now
-    c.post('foo', File.open(d.to_s).read)
+    c.post(File.open(d.to_s).read)
     times << (Time.now - t1)
     i += 1
     if limit && i >= limit
       break
     end
-    print '.'
-    $stdout.flush
   end
 end
 puts
 puts
 times.length.times do |i|
-  c.get('foo', i+1)
-  print '.'
+  c.get(i+1)
 end
 
 

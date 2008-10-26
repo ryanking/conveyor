@@ -4,13 +4,13 @@
 
 [Request] PUT /channels/{channel name}
 
-[Response] success: 201, failure: ? 
+[Response] channel created: 201, channel already exists: 202, failure: ? 
 
 The simple explanation is that to create a channel you do a PUT operation on the url you want for the channel, which must conform to /channels/\A[a-zA-Z0-9\-]+\Z. In other words, the channel name may only have letters numbers and dashes.
 
 == Post to a channel
 
-[Request] POST /channels/{channel name}, body is the message
+[Request] POST /channels/{channel name}, body is the message, MUST include a valid DATE header
 [Response] success: 202, failure: ?
 
 A post to a channel URL with the message in the body.
@@ -24,7 +24,6 @@ A post to a channel URL with the message in the body.
 
 === Get by timestamp
 
-NOT IMPLEMENTED YET!
 
 [Request] GET /channels/{channel name}?after={timestamp}
 [Response] success: 200
@@ -60,4 +59,3 @@ If this is called for the first time, it will return the first item in the chann
 
 [Request] GET /channels/{channel name}?next&n={n}&group={group}
 [Response] JSON array of objects, which have the keys 'id', 'hash' and 'data'
-
